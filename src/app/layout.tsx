@@ -8,6 +8,8 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -41,10 +43,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: {
-      index: true,
-      follow: true
-    }
+    googleBot: { index: true, follow: true }
   },
   openGraph: {
     title: "Tropic Tech - Workstation Rental in Bali",
@@ -90,12 +89,26 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* PERFORMANCE ONLY — TANPA HAPUS APA PUN */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* PRELOAD LCP IMAGE */}
+        <link
+          rel="preload"
+          as="image"
+          href="/hero.svg"
+          type="image/svg+xml"
+        />
+      </head>
+
       <body
         className={`${inter.variable} antialiased bg-background text-foreground`}
       >

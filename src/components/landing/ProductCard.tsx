@@ -45,6 +45,9 @@ export default function ProductCard({ product, onOrder }: ProductCardProps) {
               alt={product.name}
               fill
               className="object-cover"
+              loading="lazy"
+              fetchPriority="low"
+              sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 30vw"
             />
           </div>
         ) : (

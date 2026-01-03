@@ -4,22 +4,20 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 
 import ChatButton from '@/components/ChatButton'
-import ChatWidget from '@/components/ChatWidget'
 import Header from '@/components/header/Header'
 import Hero from '@/components/landing/Hero'
+
+// NON-CRITICAL (LAZY)
 const Products = dynamic(() => import('@/components/landing/Products'), { ssr: false })
 const Packages = dynamic(() => import('@/components/landing/Packages'), { ssr: false })
 const Services = dynamic(() => import('@/components/landing/Services'), { ssr: false })
-const FAQ = dynamic(() => import('@/components/landing/FAQ'), { ssr: false })
 const AboutUs = dynamic(() => import('@/components/landing/AboutUs'), { ssr: false })
+const FAQ = dynamic(() => import('@/components/landing/FAQ'), { ssr: false })
 const Reviews = dynamic(() => import('@/components/landing/Reviews'), { ssr: false })
-import Footer from '@/components/landing/Footer'
+const Footer = dynamic(() => import('@/components/landing/Footer'), { ssr: false })
 
-// ✅ Dynamic import HANYA SEKALI (INI SAJA)
-const OrderPopup = dynamic(
-  () => import('@/components/landing/OrderPopup'),
-  { ssr: false }
-)
+const OrderPopup = dynamic(() => import('@/components/landing/OrderPopup'), { ssr: false })
+const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false })
 
 interface OrderItem {
   type: 'PRODUCT' | 'PACKAGE'
@@ -39,14 +37,8 @@ export default function Home() {
       .then(res => res.json())
       .then(data => {
         if (!data || !data.product) return
-
-        const monthlyPrice =
-          typeof data.product.monthlyPrice === 'number'
-            ? data.product.monthlyPrice
-            : 0
-
+        const monthlyPrice = typeof data.product.monthlyPrice === 'number' ? data.product.monthlyPrice : 0
         const dailyPrice = monthlyPrice / 30
-
         setOrderItem({
           type: 'PRODUCT',
           id: productId,
@@ -54,7 +46,6 @@ export default function Home() {
           price: dailyPrice * duration,
           duration,
         })
-
         setIsOrderPopupOpen(true)
       })
       .catch(console.error)
@@ -65,7 +56,6 @@ export default function Home() {
       .then(res => res.json())
       .then(data => {
         if (!data || !data.package) return
-
         setOrderItem({
           type: 'PACKAGE',
           id: packageId,
@@ -73,7 +63,6 @@ export default function Home() {
           price: data.package.price,
           duration: data.package.duration,
         })
-
         setIsOrderPopupOpen(true)
       })
       .catch(console.error)
@@ -90,12 +79,31 @@ export default function Home() {
 
       <main className="flex-1">
         <Hero />
-        <Products onOrder={handleProductOrder} />
-        <Packages onOrder={handlePackageOrder} />
-        <Services />
-        <FAQ />
-        <AboutUs />
-        <Reviews />
+
+        {/* CONTENT VISIBILITY — AMAN */}
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '800px' }}>
+          <Products onOrder={handleProductOrder} />
+        </div>
+
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '800px' }}>
+          <Packages onOrder={handlePackageOrder} />
+        </div>
+
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '600px' }}>
+          <Services />
+        </div>
+
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '600px' }}>
+          <AboutUs />
+        </div>
+
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '600px' }}>
+          <FAQ />
+        </div>
+
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '600px' }}>
+          <Reviews />
+        </div>
       </main>
 
       <Footer />
@@ -108,64 +116,8 @@ export default function Home() {
         />
       )}
 
-      {/* ✅ STRUCTURED DATA SEO — TETAP UTUH */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "LocalBusiness",
-            "name": "Tropic Tech - PT Tropic Tech International",
-            "description":
-              "Professional workstation and office equipment rental in Bali. Serving digital nomads and remote workers for 5+ years.",
-            "url": "hero.svg",
-            "telephone": "+6282266574860",
-            "email": "tropictechindo@gmail.com",
-            "address": {
-              "@type": "PostalAddress",
-              "streetAddress": "Jl. Tunjungsari No.8",
-              "addressLocality": "Bali",
-              "addressCountry": "Indonesia"
-            },
-            "geo": {
-              "@type": "GeoCoordinates",
-              "latitude": -8.409518,
-              "longitude": 115.188919
-            },
-            "openingHoursSpecification": {
-              "@type": "OpeningHoursSpecification",
-              "dayOfWeek": [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday",
-                "Sunday"
-              ],
-              "opens": "09:00",
-              "closes": "18:00"
-            },
-            "priceRange": "Rp 75,000 - Rp 2,000,000 / day",
-            "image": "https://i.ibb.co.com/Pzbsg8mx/2.jpg",
-            "sameAs": [
-              "https://www.instagram.com/tropictechs",
-              "https://wa.me/6282266574860"
-            ],
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "5",
-              "reviewCount": "100+",
-              "bestRating": "5",
-              "worstRating": "1"
-            }
-          })
-        }}
-      />
-
-      {/* CHATBOT */}
       <ChatButton onClick={() => setChatOpen(true)} />
-      <ChatWidget open={chatOpen} onClose={() => setChatOpen(false)} />
+      {chatOpen && <ChatWidget open={chatOpen} onClose={() => setChatOpen(false)} />}
     </div>
   )
 }

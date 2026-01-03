@@ -18,16 +18,16 @@ export default function Hero() {
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 via-background to-primary/5">
       {/* Background Image */}
       <div className="absolute inset-0">
-        <Image
-          src="hero.svg"
-          alt="Tropic Tech Workstation Rental Bali"
-          fill
-          className="object-cover"
-          style={{ opacity: imageOpacity / 100 }}
-          priority
-          sizes="100vw"
-          quality={85}
-        />
+      <Image
+        src="https://i.ibb.co.com/Pzbsg8mx/2.jpg"
+        alt="Tropic Tech Workstation Rental Bali"
+        fill
+        unoptimized
+        priority
+        className="object-cover"
+        style={{ opacity: imageOpacity / 100 }}
+      />
+
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
       </div>
 

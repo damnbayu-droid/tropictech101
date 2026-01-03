@@ -10,30 +10,28 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* LOGO — JANGAN DIUBAH */}
-          <Link href="/" className="text-2xl font-bold text-primary">
+          <Link href="/" prefetch={false} className="text-2xl font-bold text-primary">
             Tropic Tech
           </Link>
 
           {/* RIGHT CTA */}
           <nav className="flex items-center gap-3">
-            {/* LOGIN */}
-          {/* SIGN UP */}
-          <Link
-            href="/auth/signup"
-            className="px-4 py-2 rounded-md border hover:bg-accent transition"
-          >
-            Sign Up
-          </Link>
+            <Link
+              href="/auth/signup"
+              prefetch={false}
+              className="px-4 py-2 rounded-md border hover:bg-accent transition"
+            >
+              Sign Up
+            </Link>
 
-          {/* LOGIN */}
-          <Link
-            href="/auth/login"
-            className="px-4 py-2 rounded-md bg-black text-white hover:bg-black/90 transition"
-          >
-            Login
-          </Link>
+            <Link
+              href="/auth/login"
+              prefetch={false}
+              className="px-4 py-2 rounded-md bg-black text-white hover:bg-black/90 transition"
+            >
+              Login
+            </Link>
 
-            {/* THEME + LANGUAGE */}
             <ThemeLanguageButton />
           </nav>
         </div>

@@ -3,7 +3,14 @@
 import Image from 'next/image'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 interface PackageCardProps {
   package: {
@@ -37,6 +44,9 @@ export default function PackageCard({ package: pkg, onOrder }: PackageCardProps)
               alt={pkg.name}
               fill
               className="object-cover"
+              loading="lazy"
+              fetchPriority="low"
+              sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 30vw"
             />
           </div>
         ) : (
@@ -45,7 +55,9 @@ export default function PackageCard({ package: pkg, onOrder }: PackageCardProps)
           </div>
         )}
         <CardTitle className="line-clamp-1">{pkg.name}</CardTitle>
-        <CardDescription className="line-clamp-2">{pkg.description}</CardDescription>
+        <CardDescription className="line-clamp-2">
+          {pkg.description}
+        </CardDescription>
       </CardHeader>
 
       <CardContent className="flex-1">
@@ -53,15 +65,15 @@ export default function PackageCard({ package: pkg, onOrder }: PackageCardProps)
           <div>
             <p className="text-sm font-medium mb-2">Included Items:</p>
             <ul className="space-y-1 text-sm text-muted-foreground">
-            {(pkg.items || []).map((item) => (
-              <li key={item.id} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0" />
-                <span className="line-clamp-1">
-                  {item.product.name} x {item.quantity}
-                </span>
-              </li>
-            ))}
-          </ul>
+              {(pkg.items || []).map((item) => (
+                <li key={item.id} className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0" />
+                  <span className="line-clamp-1">
+                    {item.product.name} x {item.quantity}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="border-t pt-3 space-y-2">
@@ -71,7 +83,9 @@ export default function PackageCard({ package: pkg, onOrder }: PackageCardProps)
             </div>
             <div className="flex justify-between font-semibold">
               <span>{t('totalPrice')}:</span>
-              <span className="text-primary">Rp {pkg.price.toLocaleString('id-ID')}</span>
+              <span className="text-primary">
+                Rp {pkg.price.toLocaleString('id-ID')}
+              </span>
             </div>
           </div>
         </div>
