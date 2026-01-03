@@ -1,23 +1,25 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
+
 import ChatButton from '@/components/ChatButton'
 import ChatWidget from '@/components/ChatWidget'
-import dynamic from 'next/dynamic'
 import Header from '@/components/header/Header'
 import Hero from '@/components/landing/Hero'
-import Products from '@/components/landing/Products'
-import Packages from '@/components/landing/Packages'
-import Services from '@/components/landing/Services'
-import FAQ from '@/components/landing/FAQ'
-import AboutUs from '@/components/landing/AboutUs'
-import Reviews from '@/components/landing/Reviews'
+const Products = dynamic(() => import('@/components/landing/Products'), { ssr: false })
+const Packages = dynamic(() => import('@/components/landing/Packages'), { ssr: false })
+const Services = dynamic(() => import('@/components/landing/Services'), { ssr: false })
+const FAQ = dynamic(() => import('@/components/landing/FAQ'), { ssr: false })
+const AboutUs = dynamic(() => import('@/components/landing/AboutUs'), { ssr: false })
+const Reviews = dynamic(() => import('@/components/landing/Reviews'), { ssr: false })
 import Footer from '@/components/landing/Footer'
 
-// Dynamically import OrderPopup to avoid hydration issues with useAuth
-const OrderPopup = dynamic(() => import('@/components/landing/OrderPopup'), {
-  ssr: false,
-})
+// ✅ Dynamic import HANYA SEKALI (INI SAJA)
+const OrderPopup = dynamic(
+  () => import('@/components/landing/OrderPopup'),
+  { ssr: false }
+)
 
 interface OrderItem {
   type: 'PRODUCT' | 'PACKAGE'
@@ -30,47 +32,40 @@ interface OrderItem {
 export default function Home() {
   const [orderItem, setOrderItem] = useState<OrderItem | null>(null)
   const [isOrderPopupOpen, setIsOrderPopupOpen] = useState(false)
-
-  // 🔹 CHAT STATE (DITAMBAHKAN, TIDAK MENGGANGGU YANG LAIN)
   const [chatOpen, setChatOpen] = useState(false)
 
-const handleProductOrder = (productId: string, duration: number) => {
-  fetch(`/api/products/${productId}`)
-    .then(res => res.json())
-    .then(data => {
-      // 🔒 SAFETY CHECK (INI YANG SEBELUMNYA HILANG)
-      if (!data || !data.product) {
-        console.error('Product data invalid:', data)
-        return
-      }
+  const handleProductOrder = (productId: string, duration: number) => {
+    fetch(`/api/products/${productId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data || !data.product) return
 
-      const monthlyPrice =
-        typeof data.product.monthlyPrice === 'number'
-          ? data.product.monthlyPrice
-          : 0
+        const monthlyPrice =
+          typeof data.product.monthlyPrice === 'number'
+            ? data.product.monthlyPrice
+            : 0
 
-      const dailyPrice = monthlyPrice / 30
+        const dailyPrice = monthlyPrice / 30
 
-      setOrderItem({
-        type: 'PRODUCT',
-        id: productId,
-        name: data.product.name || 'Selected Product',
-        price: dailyPrice * duration,
-        duration,
+        setOrderItem({
+          type: 'PRODUCT',
+          id: productId,
+          name: data.product.name || 'Selected Product',
+          price: dailyPrice * duration,
+          duration,
+        })
+
+        setIsOrderPopupOpen(true)
       })
-
-      setIsOrderPopupOpen(true)
-    })
-    .catch(error => {
-      console.error('Failed to fetch product:', error)
-    })
-}
-
+      .catch(console.error)
+  }
 
   const handlePackageOrder = (packageId: string) => {
     fetch(`/api/packages/${packageId}`)
       .then(res => res.json())
       .then(data => {
+        if (!data || !data.package) return
+
         setOrderItem({
           type: 'PACKAGE',
           id: packageId,
@@ -78,11 +73,10 @@ const handleProductOrder = (productId: string, duration: number) => {
           price: data.package.price,
           duration: data.package.duration,
         })
+
         setIsOrderPopupOpen(true)
       })
-      .catch(error => {
-        console.error('Failed to fetch package:', error)
-      })
+      .catch(console.error)
   }
 
   const handleCloseOrderPopup = () => {
@@ -114,7 +108,7 @@ const handleProductOrder = (productId: string, duration: number) => {
         />
       )}
 
-      {/* STRUCTURED DATA SEO (TETAP) */}
+      {/* ✅ STRUCTURED DATA SEO — TETAP UTUH */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -122,8 +116,9 @@ const handleProductOrder = (productId: string, duration: number) => {
             "@context": "https://schema.org",
             "@type": "LocalBusiness",
             "name": "Tropic Tech - PT Tropic Tech International",
-            "description": "Professional workstation and office equipment rental in Bali. Serving digital nomads and remote workers for 5+ years.",
-            "url": "https://tropictechbali.com",
+            "description":
+              "Professional workstation and office equipment rental in Bali. Serving digital nomads and remote workers for 5+ years.",
+            "url": "hero.svg",
             "telephone": "+6282266574860",
             "email": "tropictechindo@gmail.com",
             "address": {
@@ -168,12 +163,9 @@ const handleProductOrder = (productId: string, duration: number) => {
         }}
       />
 
-      {/* 🔹 CHATBOT (DITAMBAHKAN) */}
+      {/* CHATBOT */}
       <ChatButton onClick={() => setChatOpen(true)} />
-      <ChatWidget
-        open={chatOpen}
-        onClose={() => setChatOpen(false)}
-      />
+      <ChatWidget open={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   )
 }

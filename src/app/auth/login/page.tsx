@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
@@ -23,12 +25,11 @@ export default function LoginPage() {
     })
 
     if (error || !data.user) {
-      toast.error('Invalid login credentials')
+      toast.error('Invalid email or password')
       setLoading(false)
       return
     }
 
-    // 🔐 cek role admin
     const role = data.user.user_metadata?.role
 
     if (role !== 'ADMIN') {
@@ -38,8 +39,17 @@ export default function LoginPage() {
       return
     }
 
-    toast.success('Welcome back')
-    router.push('/dashboard/admin')
+    toast.success('Admin login success')
+
+    /**
+     * ⚠️ PENTING
+     * router.push kadang kalah balapan dengan session
+     * kita kasih delay 1 tick
+     */
+    setTimeout(() => {
+      router.replace('/dashboard/admin')
+    }, 100)
+
     setLoading(false)
   }
 
@@ -49,23 +59,31 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle>Admin Login</CardTitle>
         </CardHeader>
+
         <CardContent className="space-y-4">
           <Input
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full"
-          >
+
+          <div className="relative">
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          <Button onClick={handleLogin} disabled={loading} className="w-full">
             {loading ? 'Signing in...' : 'Login'}
           </Button>
         </CardContent>

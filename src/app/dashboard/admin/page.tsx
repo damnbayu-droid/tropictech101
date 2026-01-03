@@ -46,11 +46,11 @@ export default function AdminDashboard() {
     whatsapp: '',
   })
 
-  useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== 'ADMIN')) {
-      router.push('/auth/login')
-    }
-  }, [isLoading, isAuthenticated, user, router])
+useEffect(() => {
+  if (!isLoading && (!isAuthenticated || user?.role !== 'ADMIN')) {
+    router.push('/auth/login')
+  }
+}, [isLoading, isAuthenticated, user, router])
 
 useEffect(() => {
   if (user) {

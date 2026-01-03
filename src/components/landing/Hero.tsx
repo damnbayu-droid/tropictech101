@@ -16,9 +16,10 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 via-background to-primary/5">
+      {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="https://i.ibb.co.com/Pzbsg8mx/2.jpg"
+          src="hero.svg"
           alt="Tropic Tech Workstation Rental Bali"
           fill
           className="object-cover"
@@ -30,6 +31,7 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
       </div>
 
+      {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
           {t('title')}
@@ -49,9 +51,30 @@ export default function Hero() {
         </Button>
       </div>
 
-      {/* Opacity Control Slider - Like volume control on edge */}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 bg-background/90 backdrop-blur-sm p-3 rounded-full shadow-lg border">
-        <div className="h-40 flex items-center">
+      {/* ===================== */}
+      {/* OPACITY CONTROL CTA   */}
+      {/* ===================== */}
+
+      {/* MOBILE (Horizontal - Top Center) */}
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 md:hidden">
+        <div className="flex items-center gap-3 bg-background/95 backdrop-blur-md px-5 py-3 rounded-full shadow-lg border">
+          <Slider
+            value={[imageOpacity]}
+            onValueChange={(value) => setImageOpacity(value[0])}
+            min={0}
+            max={100}
+            step={5}
+            className="w-48"
+          />
+          <span className="text-sm font-medium text-muted-foreground w-10 text-right">
+            {imageOpacity}%
+          </span>
+        </div>
+      </div>
+
+      {/* DESKTOP & TABLET (Vertical - Right Center) */}
+      <div className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-20">
+        <div className="flex flex-col items-center gap-3 bg-background/90 backdrop-blur-md p-4 rounded-full shadow-lg border">
           <Slider
             value={[imageOpacity]}
             onValueChange={(value) => setImageOpacity(value[0])}
@@ -59,16 +82,16 @@ export default function Hero() {
             max={100}
             step={5}
             orientation="vertical"
-            className="w-2"
+            className="h-40"
           />
+          <span className="text-xs font-medium text-muted-foreground">
+            {imageOpacity}%
+          </span>
         </div>
-        <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-          {imageOpacity}%
-        </span>
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-20">
         <div className="w-6 h-10 border-2 border-primary rounded-full flex justify-center">
           <div className="w-1.5 h-3 bg-primary rounded-full mt-2 animate-pulse" />
         </div>
