@@ -10,14 +10,14 @@ async function generateHashedPasswords() {
 
     console.log('-- SQL Script to Add Test Users --\n')
 
-    console.log(`-- Worker Account (worker@tropictechbali.com)`)
+    console.log(`-- Worker Account (worker@testdomain.fun)`)
     console.log(`INSERT INTO users (username, password, email, full_name, whatsapp, role, is_active, is_verified)`)
-    console.log(`VALUES ('worker_tropictech', '${workerHash}', 'worker@tropictechbali.com', 'Tropic Tech Worker', '+62123456789', 'WORKER', true, true)`)
+    console.log(`VALUES ('worker_tropictech', '${workerHash}', 'worker@testdomain.fun', 'Tropic Tech Worker', '+62123456789', 'WORKER', true, true)`)
     console.log(`ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, role = EXCLUDED.role;\n`)
 
-    console.log(`-- User Account (user@tropictechbali.com)`)
+    console.log(`-- User Account (user@testdomain.fun)`)
     console.log(`INSERT INTO users (username, password, email, full_name, whatsapp, role, is_active, is_verified)`)
-    console.log(`VALUES ('user_tropictech', '${userHash}', 'user@tropictechbali.com', 'Tropic Tech User', '+62987654321', 'USER', true, true)`)
+    console.log(`VALUES ('user_tropictech', '${userHash}', 'user@testdomain.fun', 'Tropic Tech User', '+62987654321', 'USER', true, true)`)
     console.log(`ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, role = EXCLUDED.role;\n`)
 
     console.log('-- Copy and run these SQL statements in your Supabase SQL Editor')

@@ -1,13 +1,13 @@
 # Test User Credentials
 
 ## Worker Dashboard Access
-- **Email**: `worker@tropictechbali.com`
+- **Email**: `worker@testdomain.fun`
 - **Password**: `Worker2026`
 - **Role**: WORKER
 - **Dashboard URL**: `/dashboard/worker`
 
 ## User Dashboard Access
-- **Email**: `user@tropictechbali.com`
+- **Email**: `user@testdomain.fun`
 - **Password**: `User2026`
 - **Role**: USER
 - **Dashboard URL**: `/dashboard/user`

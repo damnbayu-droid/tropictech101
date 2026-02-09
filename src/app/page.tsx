@@ -113,7 +113,7 @@ export default function Home() {
                   "name": "How do I rent workstation equipment in Bali?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Browse our products on tropictechbali.com, select your duration (daily/weekly/monthly), and place an order. We offer fast delivery across Bali including Canggu, Ubud, and Seminyak."
+                    "text": "Browse our products on testdomain.fun, select your duration (daily/weekly/monthly), and place an order. We offer fast delivery across Bali including Canggu, Ubud, and Seminyak."
                   }
                 },
                 {

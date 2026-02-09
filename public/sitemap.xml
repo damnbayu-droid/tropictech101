@@ -3,7 +3,7 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <!-- Homepage -->
   <url>
-    <loc>https://tropictechbali.com/</loc>
+    <loc>https://testdomain.fun/</loc>
     <lastmod>2024-12-30</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -11,14 +11,14 @@
 
   <!-- Auth Pages -->
   <url>
-    <loc>https://tropictechbali.com/auth/login</loc>
+    <loc>https://testdomain.fun/auth/login</loc>
     <lastmod>2024-12-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://tropictechbali.com/auth/signup</loc>
+    <loc>https://testdomain.fun/auth/signup</loc>
     <lastmod>2024-12-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -26,21 +26,21 @@
 
   <!-- Dashboard Pages -->
   <url>
-    <loc>https://tropictechbali.com/dashboard/user</loc>
+    <loc>https://testdomain.fun/dashboard/user</loc>
     <lastmod>2024-12-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
 
   <url>
-    <loc>https://tropictechbali.com/dashboard/worker</loc>
+    <loc>https://testdomain.fun/dashboard/worker</loc>
     <lastmod>2024-12-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
 
   <url>
-    <loc>https://tropictechbali.com/dashboard/admin</loc>
+    <loc>https://testdomain.fun/dashboard/admin</loc>
     <lastmod>2024-12-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -48,21 +48,21 @@
 
   <!-- Policy Pages -->
   <url>
-    <loc>https://tropictechbali.com/privacy-policy</loc>
+    <loc>https://testdomain.fun/privacy-policy</loc>
     <lastmod>2024-12-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <url>
-    <loc>https://tropictechbali.com/terms-conditions</loc>
+    <loc>https://testdomain.fun/terms-conditions</loc>
     <lastmod>2024-12-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <url>
-    <loc>https://tropictechbali.com/refund-policy</loc>
+    <loc>https://testdomain.fun/refund-policy</loc>
     <lastmod>2024-12-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
