@@ -9,17 +9,16 @@ import { cn } from '@/lib/utils'
 
 export default function Hero() {
   const { t } = useLanguage()
-  const [imageOpacity, setImageOpacity] = useState(0)
+  const [imageOpacity, setImageOpacity] = useState(50)
   const [sliderOpacity, setSliderOpacity] = useState(0)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Immediate opacity for LCP
-    setImageOpacity(50)
-
-    // Slider appears after 2 seconds
+    setMounted(true)
+    // Slider appears after 1 second for better TBT
     const sliderTimer = setTimeout(() => {
       setSliderOpacity(100)
-    }, 2000)
+    }, 1000)
 
     return () => {
       clearTimeout(sliderTimer)
@@ -38,13 +37,14 @@ export default function Hero() {
           alt="Tropic Tech Workstation Rental Bali"
           fill
           className="object-cover transition-opacity duration-300 ease-in-out"
-          style={{ opacity: imageOpacity / 100 }}
+          style={{ opacity: mounted ? imageOpacity / 100 : 0.5 }}
           priority
+          loading="eager"
           fetchPriority="high"
           sizes="100vw"
-          quality={85}
+          quality={90}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
       </div>
 
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
@@ -70,26 +70,29 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Opacity Control Slider - Like volume control on edge */}
+      {/* Opacity Control Slider - Repositioned for mobile accessibility */}
       <div
         className={cn(
-          "absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 bg-background/10 backdrop-blur-md p-3 rounded-full shadow-lg border border-white/20 transition-opacity duration-[3000ms] ease-in-out",
+          "absolute transition-opacity duration-[3000ms] ease-in-out z-20",
+          // Mobile: center-top
+          "top-6 md:top-1/2 left-1/2 md:left-auto md:right-4 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2",
+          "flex md:flex-col items-center gap-3 bg-background/20 backdrop-blur-xl p-3 md:p-4 rounded-full shadow-2xl border border-white/10",
           sliderOpacity === 0 ? "opacity-0 pointer-events-none" : "opacity-100"
         )}
       >
-        <div className="h-40 flex items-center">
+        <div className="md:h-40 flex items-center">
           <Slider
             value={[imageOpacity]}
             onValueChange={(value) => setImageOpacity(value[0])}
             min={0}
             max={100}
             step={5}
-            orientation="vertical"
-            className="w-2"
+            orientation={mounted && window.innerWidth < 768 ? "horizontal" : "vertical"}
+            className="w-32 md:w-2"
             aria-label="Background image opacity"
           />
         </div>
-        <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+        <span className="text-xs font-bold text-primary min-w-[3ch] text-center">
           {imageOpacity}%
         </span>
       </div>

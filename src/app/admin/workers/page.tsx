@@ -250,9 +250,9 @@ export default function WorkersPage() {
             <div className="grid grid-cols-1 gap-4">
                 {workers.map((worker) => (
                     <Card key={worker.id} className="p-6 hover:shadow-lg transition-shadow">
-                        <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
+                        <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
+                            <div className="flex-1 w-full">
+                                <div className="flex items-center gap-3 mb-2 flex-wrap">
                                     <h3 className="text-xl font-bold">{worker.fullName}</h3>
                                     <Badge variant={worker.isActive ? "default" : "secondary"}>
                                         {worker.isActive ? 'Active' : 'Inactive'}
@@ -261,11 +261,11 @@ export default function WorkersPage() {
                                         <Badge variant="destructive">{worker.stats.unreadNotifications} unread</Badge>
                                     )}
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground mb-4">
-                                    <div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground mb-4">
+                                    <div className="break-all">
                                         <span className="font-medium">Email:</span> {worker.email}
                                     </div>
-                                    <div>
+                                    <div className="break-words">
                                         <span className="font-medium">WhatsApp:</span> {worker.whatsapp}
                                     </div>
                                     <div>
@@ -277,26 +277,26 @@ export default function WorkersPage() {
                                 </div>
 
                                 {/* Performance Metrics */}
-                                <div className="flex gap-6 mb-4">
+                                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-4">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+                                        <div className="w-full sm:w-32 h-2 bg-muted rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-green-600"
                                                 style={{ width: `${(worker.stats.completedJobs / worker.stats.totalJobs) * 100 || 0}%` }}
                                             />
                                         </div>
-                                        <span className="text-sm">
+                                        <span className="text-sm shrink-0">
                                             {Math.round((worker.stats.completedJobs / worker.stats.totalJobs) * 100 || 0)}% Completion
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+                                        <div className="w-full sm:w-32 h-2 bg-muted rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-blue-600"
                                                 style={{ width: `${worker.stats.attendanceRate}%` }}
                                             />
                                         </div>
-                                        <span className="text-sm">{worker.stats.attendanceRate}% Attendance</span>
+                                        <span className="text-sm shrink-0">{worker.stats.attendanceRate}% Attendance</span>
                                     </div>
                                 </div>
 
@@ -306,8 +306,8 @@ export default function WorkersPage() {
                                         <p className="text-sm font-medium mb-2">Recent Jobs:</p>
                                         <div className="space-y-1">
                                             {worker.workerSchedules.slice(0, 3).map((schedule: any) => (
-                                                <div key={schedule.id} className="flex items-center gap-2 text-sm">
-                                                    <Badge variant="outline">{schedule.status}</Badge>
+                                                <div key={schedule.id} className="flex flex-wrap items-center gap-2 text-sm">
+                                                    <Badge variant="outline" className="shrink-0">{schedule.status}</Badge>
                                                     <span className="text-muted-foreground">
                                                         {schedule.order?.orderNumber} - {new Date(schedule.scheduledDate).toLocaleDateString()}
                                                     </span>
@@ -319,11 +319,11 @@ export default function WorkersPage() {
                             </div>
 
                             {/* Actions */}
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 shrink-0">
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="gap-2"
+                                    className="gap-2 shrink-0 whitespace-nowrap"
                                     onClick={() => {
                                         setSelectedWorker(worker)
                                         setShowAssignJobDialog(true)
@@ -335,7 +335,7 @@ export default function WorkersPage() {
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="gap-2"
+                                    className="gap-2 shrink-0 whitespace-nowrap"
                                     onClick={() => {
                                         setSelectedWorker(worker)
                                         setShowMessageDialog(true)
@@ -347,6 +347,7 @@ export default function WorkersPage() {
                                 <Button
                                     size="sm"
                                     variant="outline"
+                                    className="shrink-0 whitespace-nowrap"
                                     onClick={() => {
                                         // Navigate to detailed worker view
                                         window.location.href = `/admin/workers/${worker.id}`

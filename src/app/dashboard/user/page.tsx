@@ -204,28 +204,28 @@ export default function UserDashboard() {
                       </div>
                     </div>
 
-                    <CardContent className="p-6 flex-1 flex flex-col md:flex-row justify-between gap-6">
+                    <CardContent className="p-4 md:p-6 flex-1 flex flex-col md:flex-row justify-between gap-6">
                       <div className="space-y-4 flex-1">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Deployed Equipment</label>
                           <div className="grid gap-2">
                             {order.rentalItems.map((item: any) => (
                               <div key={item.id} className="flex items-center gap-3 p-3 bg-muted/20 rounded-xl border border-transparent hover:border-primary/20 transition-colors">
-                                <div className="p-2 bg-background rounded-lg">
+                                <div className="p-2 bg-background rounded-lg shrink-0">
                                   <Package className="h-4 w-4 text-primary" />
                                 </div>
-                                <span className="font-bold text-sm tracking-tight">{item.name} <span className="text-primary ml-1">x{item.quantity}</span></span>
+                                <span className="font-bold text-sm tracking-tight truncate">{item.name} <span className="text-primary ml-1 shrink-0">x{item.quantity}</span></span>
                               </div>
                             ))}
                           </div>
                         </div>
                       </div>
 
-                      <div className="md:w-64 flex flex-col justify-between items-end gap-6">
-                        <div className="text-right">
+                      <div className="md:w-64 flex flex-col justify-between items-start md:items-end gap-6">
+                        <div className="w-full md:text-right">
                           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total Bill</p>
                           <p className="text-2xl font-black tracking-tighter">Rp {order.totalAmount.toLocaleString('id-ID')}</p>
-                          <p className="text-[10px] font-bold text-green-600 tracking-wider">VIA {order.paymentMethod}</p>
+                          <p className="text-[10px] font-bold text-green-600 tracking-wider uppercase">VIA {order.paymentMethod}</p>
                         </div>
                         <div className="flex flex-col w-full gap-2">
                           <Button size="sm" className="w-full font-black rounded-lg gap-2" onClick={() => handleExtendRental(order.id)}>
