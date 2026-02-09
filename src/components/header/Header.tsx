@@ -143,24 +143,6 @@ export default function Header() {
               showCTA ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
             )} aria-label="Main navigation">
 
-              {/* Landing Page Links */}
-              {pathname === '/' && (
-                <div className="flex items-center space-x-6 mr-4">
-                  <button onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium hover:text-primary transition-colors">
-                    {t('products') || 'Products'}
-                  </button>
-                  <button onClick={() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium hover:text-primary transition-colors">
-                    {t('packages') || 'Packages'}
-                  </button>
-                  <button onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium hover:text-primary transition-colors">
-                    Services
-                  </button>
-                  <button onClick={() => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium hover:text-primary transition-colors">
-                    Reviews
-                  </button>
-                </div>
-              )}
-
               {/* Cart Button with Sheet - Visible to all */}
               {mounted ? (
                 <>

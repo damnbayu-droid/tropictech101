@@ -56,10 +56,10 @@ export default function Hero() {
         <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-tight">
           {t('title')}
         </h1>
-        <p className="text-xl md:text-2xl mb-4 text-muted-foreground font-medium">
+        <p className="text-xl md:text-2xl mb-4 text-slate-700 dark:text-slate-300 font-medium">
           {t('subtitle')}
         </p>
-        <p className="text-lg md:text-xl mb-8 text-muted-foreground">
+        <p className="text-lg md:text-xl mb-8 text-slate-600 dark:text-slate-400">
           {t('subtitle2')}
         </p>
         <div className="flex flex-col items-center gap-4 mt-16 md:mt-32">
