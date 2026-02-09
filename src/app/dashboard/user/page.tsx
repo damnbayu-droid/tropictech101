@@ -20,20 +20,42 @@ import {
   ShoppingBag,
   ChevronRight,
   ShieldCheck,
+  ShieldCheck,
   TrendingUp,
-  MapPin
+  MapPin,
+  Camera,
+  Upload,
+  UserCheck,
+  IdCard,
+  Pencil
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default function UserDashboard() {
   const { user } = useAuth()
   const [orders, setOrders] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+
+  // Profile Edit State
+  const [editForm, setEditForm] = useState({
+    fullName: '',
+    whatsapp: '',
+    baliAddress: '',
+  })
 
   useEffect(() => {
     if (user) {
       fetchOrders()
+      setEditForm({
+        fullName: user.fullName || '',
+        whatsapp: user.whatsapp || '',
+        baliAddress: user.baliAddress || '',
+      })
     }
   }, [user])
 
@@ -54,6 +76,74 @@ export default function UserDashboard() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsUpdating(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/auth/me', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editForm),
+      })
+
+      if (response.ok) {
+        toast.success('Profile updated successfully')
+        setIsEditing(false)
+        // Note: useAuth should refresh or we can manually update local state if needed
+        // For simplicity, we trigger a page refresh or wait for context update
+        window.location.reload()
+      } else {
+        toast.error('Failed to update profile')
+      }
+    } catch (error) {
+      toast.error('Error updating profile')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'profileImage' | 'identityFile') => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // In a real app, you'd upload to Supabase Storage or S3
+    // For now, we'll simulate an upload and get a temporary URL (using FileReader for preview)
+    const reader = new FileReader()
+    reader.onloadend = async () => {
+      const base64String = reader.result as string
+      // Mocking the upload process
+      toast.loading(`Uploading ${type === 'profileImage' ? 'photo' : 'document'}...`)
+
+      try {
+        const token = localStorage.getItem('token')
+        const response = await fetch('/api/auth/me', {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ [type]: base64String }),
+        })
+
+        if (response.ok) {
+          toast.dismiss()
+          toast.success('File uploaded successfully')
+          window.location.reload()
+        } else {
+          throw new Error('Upload failed')
+        }
+      } catch (error) {
+        toast.dismiss()
+        toast.error('Max file size exceeded or upload failed')
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleExtendRental = async (orderId: string) => {
@@ -323,57 +413,167 @@ export default function UserDashboard() {
         {/* Profile Tab */}
         <TabsContent value="profile" className="animate-in fade-in duration-500">
           <div className="grid md:grid-cols-2 gap-8">
-            <Card className="border-none shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
-                  <UserIcon className="h-5 w-5 text-primary" />
-                  PERSONAL IDENTITY
-                </CardTitle>
-                <CardDescription>Verified account information used for deliveries.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6 pt-4">
-                <div className="grid gap-4">
+            <Card className="border-none shadow-lg overflow-hidden">
+              <CardHeader className="bg-muted/30 pb-6">
+                <div className="flex justify-between items-center">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</label>
-                    <p className="font-bold border-b pb-2">{user?.fullName}</p>
+                    <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
+                      <UserIcon className="h-5 w-5 text-primary" />
+                      PERSONAL IDENTITY
+                    </CardTitle>
+                    <CardDescription>Verified account information used for deliveries.</CardDescription>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Address</label>
-                    <p className="font-bold border-b pb-2">{user?.email}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">WhatsApp Contact</label>
-                    <p className="font-bold border-b pb-2">{user?.whatsapp}</p>
-                  </div>
+                  {!isEditing ? (
+                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="rounded-full h-8 px-4 font-bold text-[10px] gap-2">
+                      <Pencil className="h-3 w-3" /> EDIT
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} className="rounded-full h-8 px-4 font-bold text-[10px]">
+                      CANCEL
+                    </Button>
+                  )}
                 </div>
-                <Button className="w-full rounded-xl font-bold py-6">REQUEST INFO UPDATE</Button>
+              </CardHeader>
+              <CardContent className="space-y-6 pt-8">
+                <div className="flex flex-col items-center gap-4 mb-4">
+                  <div className="relative group">
+                    <div className="h-24 w-24 rounded-2xl bg-muted overflow-hidden border-4 border-background shadow-xl">
+                      {user?.profileImage ? (
+                        <img src={user.profileImage} alt="Profile" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center">
+                          <UserIcon className="h-10 w-10 text-muted-foreground opacity-20" />
+                        </div>
+                      )}
+                    </div>
+                    <label className="absolute -bottom-2 -right-2 p-2 bg-primary text-white rounded-xl shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                      <Camera className="h-4 w-4" />
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'profileImage')} />
+                    </label>
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profile Photo</p>
+                </div>
+
+                {!isEditing ? (
+                  <div className="grid gap-6">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</label>
+                      <p className="font-bold border-b border-muted py-2">{user?.fullName}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">WhatsApp Contact</label>
+                      <p className="font-bold border-b border-muted py-2">{user?.whatsapp}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Identity File (Passport/KTP)</label>
+                      <div className="flex items-center gap-3 p-3 bg-muted/20 rounded-xl border border-dashed mt-2">
+                        {user?.identityFile ? (
+                          <>
+                            <div className="h-8 w-8 bg-green-500/10 text-green-600 rounded flex items-center justify-center">
+                              <ShieldCheck className="h-4 w-4" />
+                            </div>
+                            <span className="text-xs font-bold text-green-600">Document Uploaded</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="h-8 w-8 bg-orange-500/10 text-orange-600 rounded flex items-center justify-center">
+                              <AlertCircle className="h-4 w-4" />
+                            </div>
+                            <span className="text-xs font-bold text-orange-600 tracking-tight">No document on file</span>
+                          </>
+                        )}
+                        <label className="ml-auto text-[10px] font-black uppercase tracking-widest bg-zinc-900 text-white px-3 py-1.5 rounded-lg cursor-pointer hover:bg-primary transition-colors">
+                          {user?.identityFile ? 'REPLACE' : 'UPLOAD NOW'}
+                          <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'identityFile')} />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleUpdateProfile} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
+                      <Input
+                        value={editForm.fullName}
+                        onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                        className="rounded-xl font-bold bg-muted/30 border-none h-12"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">WhatsApp Contact</Label>
+                      <Input
+                        value={editForm.whatsapp}
+                        onChange={(e) => setEditForm({ ...editForm, whatsapp: e.target.value })}
+                        className="rounded-xl font-bold bg-muted/30 border-none h-12"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bali Delivery Address</Label>
+                      <Input
+                        value={editForm.baliAddress}
+                        onChange={(e) => setEditForm({ ...editForm, baliAddress: e.target.value })}
+                        className="rounded-xl font-bold bg-muted/30 border-none h-12"
+                        placeholder="Villas Name, Street, Room Number"
+                      />
+                    </div>
+                    <Button type="submit" disabled={isUpdating} className="w-full rounded-xl font-black py-7 gap-2 shadow-xl shadow-primary/20">
+                      {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
+                      SAVE PROFILE CHANGES
+                    </Button>
+                  </form>
+                )}
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-lg bg-zinc-900 text-white">
-              <CardHeader>
+            <Card className="border-none shadow-lg bg-zinc-900 text-white overflow-hidden">
+              <div className="p-1 px-4 pt-6 pb-2">
                 <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  DELIVERY LOCATION
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                  TRUST & SECURITY
                 </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 pt-4">
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                  <p className="text-sm font-medium leading-relaxed italic text-zinc-300">
-                    "{user?.baliAddress || 'No current address on file. Please provide for delivery.'}"
+                <CardDescription className="text-zinc-400">Manage your verified workstation rental identity.</CardDescription>
+              </div>
+              <CardContent className="space-y-6 pt-6">
+                <div className="p-6 bg-white/5 rounded-3xl border border-white/10 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center">
+                      <IdCard className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest">Document Status</p>
+                      <p className="text-sm font-medium">{user?.identityFile ? 'Verified Identification' : 'Action Required'}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-zinc-400 leading-relaxed font-medium">
+                    To maintain our premium service levels and island-wide delivery, we require a valid passport or identity card copy on file for all workstations rentals.
                   </p>
+                  {!user?.identityFile && (
+                    <div className="pt-2">
+                      <label className="w-full h-12 flex items-center justify-center gap-2 border-2 border-dashed border-white/20 rounded-2xl hover:border-primary/50 hover:bg-white/5 transition-all cursor-pointer group">
+                        <Upload className="h-4 w-4 text-zinc-500 group-hover:text-primary" />
+                        <span className="text-xs font-bold uppercase tracking-widest group-hover:text-primary">Upload Passport/ID</span>
+                        <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'identityFile')} />
+                      </label>
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex-1 p-4 bg-white/5 rounded-2xl text-center">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase">Region</p>
-                    <p className="font-bold">Bali, ID</p>
+
+                <div className="grid gap-3">
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Rental Protection</span>
+                    </div>
+                    <Badge className="bg-green-500/10 text-green-500 border-none font-black text-[9px]">ACTIVE</Badge>
                   </div>
-                  <div className="flex-1 p-4 bg-white/5 rounded-2xl text-center">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase">Zone</p>
-                    <p className="font-bold text-primary">Standard</p>
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">24/7 Support Tier</span>
+                    </div>
+                    <Badge className="bg-primary/10 text-primary border-none font-black text-[9px]">PREMIUM</Badge>
                   </div>
                 </div>
-                <p className="text-xs text-zinc-500 text-center font-medium">To change your delivery address for an active order, please contact support via WhatsApp.</p>
               </CardContent>
             </Card>
           </div>

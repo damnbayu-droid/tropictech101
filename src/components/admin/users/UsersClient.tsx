@@ -24,7 +24,11 @@ import {
     ToggleRight,
     Search,
     MessageSquare,
-    MoreHorizontal
+    MessageSquare,
+    MoreHorizontal,
+    FileText,
+    Camera,
+    Eye
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
@@ -39,7 +43,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Label } from "@/components/ui/label"
@@ -63,6 +67,7 @@ export function UsersClient({ users }: UsersClientProps) {
     const [isRentalsOpen, setIsRentalsOpen] = useState(false)
     const [isMessageOpen, setIsMessageOpen] = useState(false)
     const [isAddUserOpen, setIsAddUserOpen] = useState(false)
+    const [isDocsOpen, setIsDocsOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [newUserData, setNewUserData] = useState({
         username: "",
@@ -92,6 +97,11 @@ export function UsersClient({ users }: UsersClientProps) {
     const handleSendMessage = (user: any) => {
         setSelectedUser(user)
         setIsMessageOpen(true)
+    }
+
+    const handleViewDocs = (user: any) => {
+        setSelectedUser(user)
+        setIsDocsOpen(true)
     }
 
     const handleToggleStatus = async (user: any) => {
@@ -190,23 +200,24 @@ export function UsersClient({ users }: UsersClientProps) {
                                 <TableRow key={user.id} className="hover:bg-muted/30 transition-colors">
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarFallback>{(user.fullName || user.username).charAt(0)}</AvatarFallback>
+                                            <Avatar className="h-10 w-10 border-2 border-muted">
+                                                {user.profileImage && <AvatarImage src={user.profileImage} className="object-cover" />}
+                                                <AvatarFallback className="font-black bg-primary/10 text-primary">{(user.fullName || user.username).charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-bold text-sm">{user.fullName || user.username}</span>
+                                                    <span className="font-bold text-sm tracking-tight">{user.fullName || user.username}</span>
                                                     {user.role === 'ADMIN' && <Shield className="h-3 w-3 text-primary fill-primary/10" />}
                                                     {!user.isActive && <Badge variant="destructive" className="h-4 text-[8px] px-1 uppercase font-black">Disabled</Badge>}
                                                 </div>
-                                                <span className="text-[10px] text-muted-foreground">ID: {user.id.substring(0, 8)}</span>
+                                                <span className="text-[10px] text-muted-foreground font-mono">ID: {user.id.substring(0, 8)}</span>
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex flex-col text-xs space-y-1">
                                             <span className="flex items-center gap-1.5"><UserCircle className="h-3 w-3 opacity-50" /> {user.email}</span>
-                                            <span className="flex items-center gap-1.5 font-medium text-primary"><MessageSquare className="h-3 w-3" /> {user.whatsapp}</span>
+                                            <span className="flex items-center gap-1.5 font-medium text-emerald-600"><MessageSquare className="h-3 w-3" /> {user.whatsapp}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -219,7 +230,7 @@ export function UsersClient({ users }: UsersClientProps) {
                                             <Badge
                                                 variant={getUserStatus(user) === 'Active Rent' ? 'default' : 'outline'}
                                                 className={cn(
-                                                    "text-[10px] font-bold uppercase tracking-wider",
+                                                    "text-[10px] font-black uppercase tracking-widest px-2 h-5",
                                                     getUserStatus(user) === 'Active Rent' ? "bg-green-600 hover:bg-green-700" : ""
                                                 )}
                                             >
@@ -232,20 +243,24 @@ export function UsersClient({ users }: UsersClientProps) {
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="h-8 gap-2 border-primary/20 hover:border-primary group"
-                                                onClick={() => handleViewRentals(user)}
+                                                className={cn(
+                                                    "h-8 gap-2 border-zinc-200 font-bold text-[10px]",
+                                                    user.identityFile ? "border-primary text-primary bg-primary/5" : ""
+                                                )}
+                                                onClick={() => handleViewDocs(user)}
                                             >
-                                                <Package className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
-                                                <span className="hidden sm:inline">Rent Stuff</span>
+                                                <IdCard className="h-3.5 w-3.5" />
+                                                FILES
+                                                {user.identityFile && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />}
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="h-8 gap-2 group"
-                                                onClick={() => handleSendMessage(user)}
+                                                className="h-8 gap-2 border-zinc-200 font-bold text-[10px]"
+                                                onClick={() => handleViewRentals(user)}
                                             >
-                                                <MessageSquare className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
-                                                <span className="hidden sm:inline">Message</span>
+                                                <Package className="h-3.5 w-3.5" />
+                                                RENTALS
                                             </Button>
 
                                             <DropdownMenu>
@@ -406,6 +421,57 @@ export function UsersClient({ users }: UsersClientProps) {
                             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "CREATE USER ACCOUNT"}
                         </Button>
                     </form>
+                </DialogContent>
+            </Dialog>
+            {/* Documents Dialog */}
+            <Dialog open={isDocsOpen} onOpenChange={setIsDocsOpen}>
+                <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 font-black uppercase tracking-widest">
+                            <FileText className="h-5 w-5 text-primary" />
+                            USER DOCUMENT VERIFICATION
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="grid md:grid-cols-2 gap-6 py-6 border-t mt-4">
+                        <div className="space-y-4">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profile Photo</h4>
+                            <div className="aspect-square rounded-3xl bg-muted overflow-hidden border-4 border-muted shadow-inner flex items-center justify-center">
+                                {selectedUser?.profileImage ? (
+                                    <img src={selectedUser.profileImage} alt="Profile" className="h-full w-full object-cover" />
+                                ) : (
+                                    <UserCircle className="h-20 w-20 text-muted-foreground opacity-10" />
+                                )}
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Identity File (Passport/ID)</h4>
+                            <div className="aspect-[3/4] rounded-3xl bg-zinc-900 overflow-hidden border-4 border-zinc-800 shadow-xl flex flex-col items-center justify-center relative group">
+                                {selectedUser?.identityFile ? (
+                                    <>
+                                        <img src={selectedUser.identityFile} alt="Identity" className="h-full w-full object-contain" />
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <Button
+                                                variant="outline"
+                                                className="bg-white text-black font-bold h-12 px-6 rounded-2xl gap-2"
+                                                onClick={() => window.open(selectedUser.identityFile, '_blank')}
+                                            >
+                                                <Eye className="h-4 w-4" /> FULL VIEW
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center opacity-20">
+                                        <IdCard className="h-20 w-20 text-white mb-2" />
+                                        <p className="text-[10px] font-black text-white uppercase tracking-tighter">NO DOCUMENT UPLOADED</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex justify-end pt-4 gap-3">
+                        <Button variant="outline" className="font-bold px-8 rounded-xl" onClick={() => setIsDocsOpen(false)}>CLOSE VIEW</Button>
+                        <Button className="font-black px-8 rounded-xl shadow-lg shadow-primary/20 bg-emerald-600 hover:bg-emerald-700">VERIFY IDENTITY</Button>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

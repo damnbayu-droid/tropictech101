@@ -10,10 +10,24 @@ export async function GET(request: Request) {
   try {
     const products = await db.product.findMany({
       where: category ? { category } : undefined,
+      include: {
+        _count: {
+          select: {
+            productUnits: {
+              where: { status: 'AVAILABLE' }
+            }
+          }
+        }
+      },
       orderBy: { createdAt: 'desc' },
     })
 
-    return NextResponse.json({ products })
+    const formattedProducts = products.map(p => ({
+      ...p,
+      stock: p._count.productUnits
+    }))
+
+    return NextResponse.json({ products: formattedProducts })
   } catch (error) {
     console.error('Error fetching products:', error)
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
