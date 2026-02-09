@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 
     const formattedProducts = products.map(p => ({
       ...p,
-      stock: p._count.productUnits
+      stock: p.stock || 0
     }))
 
     return NextResponse.json({ products: formattedProducts })

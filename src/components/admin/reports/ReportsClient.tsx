@@ -93,6 +93,37 @@ export function ReportsClient({
     const currentTax = filteredInvoices.reduce((acc, inv) => acc + inv.tax, 0)
     const currentDelivery = filteredInvoices.reduce((acc, inv) => acc + inv.deliveryFee, 0)
 
+    const dynamicChartData = (() => {
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        const now = new Date()
+        const result: { name: string; total: number }[] = []
+
+        let monthsBack = 12
+        if (period === 'MONTH') monthsBack = 1
+        else if (period === 'QUARTER') monthsBack = 3
+        else if (period === 'HALF') monthsBack = 6
+        else if (period === 'YEAR') monthsBack = 12
+        else monthsBack = 12 // ALL shows last 12 months in chart
+
+        for (let i = monthsBack - 1; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+            const m = d.getMonth()
+            const y = d.getFullYear()
+            const label = monthNames[m]
+
+            const total = filteredInvoices.reduce((acc, inv) => {
+                const invDate = new Date(inv.createdAt)
+                if (invDate.getMonth() === m && invDate.getFullYear() === y) {
+                    return acc + inv.total
+                }
+                return acc
+            }, 0)
+
+            result.push({ name: label, total })
+        }
+        return result
+    })()
+
     const handleDownloadPDF = (type: 'REVENUE' | 'TAX' | 'DELIVERY') => {
         const doc = new jsPDF() as any
         const title = `${type.charAt(0) + type.slice(1).toLowerCase()} Report - ${period}`
@@ -261,7 +292,7 @@ export function ReportsClient({
                     </CardHeader>
                     <CardContent className="h-[350px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={revenueByMonth}>
+                            <BarChart data={dynamicChartData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} className="text-[10px] font-bold" />
                                 <YAxis tickFormatter={(val) => `Rp${val / 1000000}M`} axisLine={false} tickLine={false} className="text-[10px] font-bold" />

@@ -108,9 +108,9 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
   doc.text(`End Date: ${data.endDate}`, 20, y)
   y += 15
 
-  // Items Table Header
-  const tableStartY = y
-  const colWidths = [10, 80, 30, 30, 40]
+  // Adjusted column widths to fit 170mm usage (210mm page - 40mm margins)
+  // Total: 10 + 70 + 20 + 35 + 35 = 170
+  const colWidths = [10, 70, 20, 35, 35]
   const startX = 20
 
   doc.setFillColor(...primaryColor)
@@ -123,13 +123,13 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
 
   let x = startX + 5
   doc.text('#', x, y)
-  x += colWidths[1]
+  x += colWidths[0] // 10
   doc.text('Item Name', x, y)
-  x += colWidths[2]
+  x += colWidths[1] // 70
   doc.text('Qty', x, y)
-  x += colWidths[3]
+  x += colWidths[2] // 20
   doc.text('Unit Price', x, y)
-  x += colWidths[4]
+  x += colWidths[3] // 35
   doc.text('Total', x, y)
 
   y += 8
@@ -146,13 +146,13 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
 
     x = startX + 5
     doc.text(`${index + 1}`, x, y)
-    x += colWidths[1]
+    x += colWidths[0]
     doc.text(item.name.substring(0, 35), x, y)
-    x += colWidths[2]
+    x += colWidths[1]
     doc.text(item.quantity.toString(), x, y)
-    x += colWidths[3]
+    x += colWidths[2]
     doc.text(`${data.currency} ${item.unitPrice.toLocaleString()}`, x, y)
-    x += colWidths[4]
+    x += colWidths[3]
     doc.text(`${data.currency} ${item.totalPrice.toLocaleString()}`, x, y)
     y += 8
   })

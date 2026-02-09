@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { logActivity } from '@/lib/logger'
+import { verifyAuth } from '@/lib/auth/auth-helper'
 
 /**
  * Get worker's attendance records
  */
 export async function GET(request: NextRequest) {
     try {
-        const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-        if (!token) {
+        const user = await verifyAuth(request)
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const workerId = 'worker-id' // Replace with actual JWT verification
+        const workerId = user.id
 
         const attendance = await db.workerAttendance.findMany({
             where: { workerId },
@@ -37,12 +38,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
-        const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-        if (!token) {
+        const user = await verifyAuth(request)
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const workerId = 'worker-id' // Replace with actual JWT verification
+        const workerId = user.id
         const { notes } = await request.json()
         const today = new Date()
         today.setHours(0, 0, 0, 0)

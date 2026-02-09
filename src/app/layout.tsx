@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
@@ -21,9 +22,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://testdomain.fun'),
-  title: "Tropic Tech | #1 Workstation & Office Rental Bali",
-  description: "Rent premium workstations, ergonomic chairs, monitors, and desks in Bali. 5+ years experience serving digital nomads and remote workers. Daily, weekly, and monthly rentals with fast island-wide delivery.",
-  keywords: ["Workstation Rental Bali", "Rent Office Chair Bali", "Monitor Rental Bali", "Tropic Tech Bali", "Canggu Coworking Equipment", "Ubud Desktop Rental", "Remote Work Bali", "Desk Rental Bali", "Digital Nomad Bali", "Ergonomic office equipment rental Indonesia"],
+  title: 'Tropic Tech - #1 Workstation Rental Bali | Monitors, Chairs, Desks',
+  description: 'Premium office equipment rental in Bali. High-end monitors, ergonomic chairs, and standing desks. Fast delivery for digital nomads and remote workers.',
+  keywords: 'bali workstation rental, monitor rental bali, ergonomic chair rental bali, office equipment bali, digital nomad bali, tropic tech',
   authors: [{ name: "PT Tropic Tech International" }],
   creator: "Tropic Tech",
   publisher: "PT Tropic Tech International",
@@ -98,9 +99,11 @@ export default function RootLayout({
         >
           <LanguageProvider>
             <AuthProvider>
-              <CartProvider>
-                {children}
-              </CartProvider>
+              <NotificationProvider>
+                <CartProvider>
+                  {children}
+                </CartProvider>
+              </NotificationProvider>
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

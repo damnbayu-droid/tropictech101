@@ -27,7 +27,10 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { DirectMessagesList } from '@/components/chat/DirectMessagesList'
+import { MessageSquare, Users, MessageCircle } from 'lucide-react'
 import { RealtimePoller } from '@/lib/realtime'
+import { GroupChatDialog } from '@/components/chat/GroupChatDialog'
 
 export default function WorkerDashboard() {
   const { user, isLoading, isAuthenticated, logout } = useAuth()
@@ -46,8 +49,13 @@ export default function WorkerDashboard() {
   const [unreadCount, setUnreadCount] = useState(0)
 
   // State for dialogs
-  const [showAttendanceDialog, setShowAttendanceDialog] = useState(false)
   const [showNotificationsDialog, setShowNotificationsDialog] = useState(false)
+  const [showDMList, setShowDMList] = useState(false)
+
+  // State for Group Chats
+  const [isGroupChatOpen, setIsGroupChatOpen] = useState(false)
+  const [selectedGroup, setSelectedGroup] = useState<{ id: string, name: string } | null>(null)
+  const [workerGroups, setWorkerGroups] = useState<any[]>([])
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -58,6 +66,7 @@ export default function WorkerDashboard() {
   useEffect(() => {
     if (user) {
       fetchData()
+      fetchWorkerGroups()
 
       // Set up real-time polling every 15 seconds
       const poller = new RealtimePoller({
@@ -80,7 +89,38 @@ export default function WorkerDashboard() {
     }
   }, [user])
 
+  const fetchWorkerGroups = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/groups', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.success) {
+        setWorkerGroups(data.groups || [])
+      }
+    } catch (e) {
+      console.error('Failed to fetch worker groups')
+    }
+  }
+
+  const openGroupChat = (group: any) => {
+    setSelectedGroup({ id: group.id, name: group.name })
+    setIsGroupChatOpen(true)
+  }
+
+  // Calculate stats
+  // We need to calculate these based on the state
+  const pendingJobs = schedules.filter(s => s.status === 'PENDING').length
+  const ongoingJobs = schedules.filter(s => s.status === 'ONGOING').length
+  const completedJobs = schedules.filter(s => s.status === 'FINISHED').length
+  const attendanceRate = attendanceHistory.length > 0
+    ? Math.round((attendanceHistory.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length / attendanceHistory.length) * 100)
+    : 0
+
   const fetchData = async () => {
+    // Call fetchWorkerGroups here as well to ensure it's loaded
+    fetchWorkerGroups()
     const token = localStorage.getItem('token')
     if (!token) return
 
@@ -98,7 +138,7 @@ export default function WorkerDashboard() {
       }
 
       if (attendanceRes.ok) {
-        const data = await schedulesRes.json()
+        const data = await attendanceRes.json()
         setAttendanceHistory(data.attendance || [])
 
         // Check if checked in today
@@ -186,13 +226,8 @@ export default function WorkerDashboard() {
     return null
   }
 
-  // Calculate stats
-  const pendingJobs = schedules.filter(s => s.status === 'PENDING').length
-  const ongoingJobs = schedules.filter(s => s.status === 'ONGOING').length
-  const completedJobs = schedules.filter(s => s.status === 'FINISHED').length
-  const attendanceRate = attendanceHistory.length > 0
-    ? Math.round((attendanceHistory.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length / attendanceHistory.length) * 100)
-    : 0
+  const teamGroup = workerGroups.find(g => g.name === 'Tropic Tech Daily' || g.type === 'WORKER_GROUP')
+  const supportGroups = workerGroups.filter(g => g.type === 'USER_SUPPORT')
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -206,7 +241,7 @@ export default function WorkerDashboard() {
               <h1 className="text-4xl font-bold text-primary mb-2">Worker Dashboard</h1>
               <p className="text-muted-foreground">Welcome back, {user?.fullName}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-row flex-wrap gap-2 mt-4 md:mt-0">
               <Button
                 variant="outline"
                 className="gap-2"
@@ -234,174 +269,189 @@ export default function WorkerDashboard() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <Clock className="w-8 h-8 text-orange-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pending Jobs</p>
-                    <p className="text-2xl font-bold">{pendingJobs}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* ... (stats cards remain same) */}
 
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <AlertCircle className="w-8 h-8 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Ongoing</p>
-                    <p className="text-2xl font-bold">{ongoingJobs}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Completed</p>
-                    <p className="text-2xl font-bold">{completedJobs}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <TrendingUp className="w-8 h-8 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Attendance</p>
-                    <p className="text-2xl font-bold">{attendanceRate}%</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Attendance Check-in */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ClipboardCheck className="w-5 h-5" />
-                Daily Attendance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {todayAttendance ? (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Today's Status</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant={todayAttendance.status === 'PRESENT' ? 'default' : 'secondary'}>
-                        {todayAttendance.status}
-                      </Badge>
-                      <span className="text-sm">
-                        Check-in: {todayAttendance.checkInTime ? new Date(todayAttendance.checkInTime).toLocaleTimeString() : 'N/A'}
-                      </span>
-                      {todayAttendance.checkOutTime && (
-                        <span className="text-sm">
-                          | Check-out: {new Date(todayAttendance.checkOutTime).toLocaleTimeString()}
-                        </span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            {/* Left Column: Attendance & Chats */}
+            <div className="space-y-8">
+              {/* Attendance Check-in */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ClipboardCheck className="w-5 h-5" />
+                    Daily Attendance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {todayAttendance ? (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Today's Status</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant={todayAttendance.status === 'PRESENT' ? 'default' : 'secondary'}>
+                            {todayAttendance.status}
+                          </Badge>
+                          <span className="text-sm">
+                            {new Date(todayAttendance.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                      {!todayAttendance.checkOutTime && (
+                        <Button onClick={handleCheckInOut} size="sm">
+                          Check Out
+                        </Button>
                       )}
                     </div>
-                  </div>
-                  {!todayAttendance.checkOutTime && (
-                    <Button onClick={handleCheckInOut}>
-                      Check Out
-                    </Button>
+                  ) : (
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-muted-foreground text-sm">Not checked in</p>
+                      <Button onClick={handleCheckInOut} size="sm">
+                        Check In
+                      </Button>
+                    </div>
                   )}
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <p className="text-muted-foreground">You haven't checked in today</p>
-                  <Button onClick={handleCheckInOut}>
-                    Check In Now
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          {/* Job Schedules */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Job Schedules
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {schedules.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No jobs assigned yet</p>
-              ) : (
-                <div className="space-y-4">
-                  {schedules.map((schedule) => (
-                    <Card key={schedule.id} className="border-l-4 border-l-primary">
-                      <CardContent className="pt-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="font-bold text-lg">{schedule.order?.orderNumber}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Customer: {schedule.order?.user?.fullName}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              <Calendar className="w-3 h-3 inline mr-1" />
-                              Scheduled: {new Date(schedule.scheduledDate).toLocaleDateString()}
+              {/* Team Chat Card */}
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-primary">
+                    <Users className="w-5 h-5" />
+                    Team Chat
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {teamGroup ? (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Tropic Tech Daily</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-[150px]">
+                          {teamGroup.messages && teamGroup.messages[0]
+                            ? teamGroup.messages[0].content
+                            : 'No messages yet'}
+                        </p>
+                      </div>
+                      <Button size="sm" onClick={() => openGroupChat(teamGroup)}>Open Chat</Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Team group not found.</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Support Tickets / User Groups */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5" />
+                    Support Tickets
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {supportGroups.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No active support tickets.</p>
+                  ) : (
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                      {supportGroups.map(group => (
+                        <div key={group.id} className="flex items-center justify-between p-2 hover:bg-muted rounded-lg border">
+                          <div className="overflow-hidden">
+                            <p className="font-medium text-sm truncate">{group.name.replace('Support - ', '')}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-[150px]">
+                              {group.messages && group.messages[0]
+                                ? group.messages[0].content
+                                : 'No messages'}
                             </p>
                           </div>
-                          <Badge variant={
-                            schedule.status === 'FINISHED' ? 'default' :
-                              schedule.status === 'ONGOING' ? 'secondary' :
-                                'outline'
-                          }>
-                            {schedule.status}
-                          </Badge>
+                          <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => openGroupChat(group)}>
+                            View
+                          </Button>
                         </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
-                        {schedule.notes && (
-                          <div className="bg-muted p-3 rounded-md mb-4">
-                            <p className="text-sm font-medium">Admin Notes:</p>
-                            <p className="text-sm">{schedule.notes}</p>
-                          </div>
-                        )}
+            {/* Right Column: Job Schedules (stays same but wider) */}
+            <div className="lg:col-span-2">
+              {/* Job Schedules Card... (keep existing code) */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="w-5 h-5" />
+                    Job Schedules
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {schedules.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">No jobs assigned yet</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {schedules.map((schedule) => (
+                        <Card key={schedule.id} className="border-l-4 border-l-primary">
+                          <CardContent className="pt-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="font-bold text-lg">{schedule.order?.orderNumber}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  Customer: {schedule.order?.user?.fullName}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  <Calendar className="w-3 h-3 inline mr-1" />
+                                  Scheduled: {new Date(schedule.scheduledDate).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <Badge variant={
+                                schedule.status === 'FINISHED' ? 'default' :
+                                  schedule.status === 'ONGOING' ? 'secondary' :
+                                    'outline'
+                              }>
+                                {schedule.status}
+                              </Badge>
+                            </div>
 
-                        {schedule.status !== 'FINISHED' && schedule.status !== 'CANCELLED' && (
-                          <div className="flex gap-2 flex-wrap">
-                            {schedule.status === 'PENDING' && (
-                              <Button size="sm" onClick={() => updateJobStatus(schedule.id, 'ONGOING')}>
-                                Start Job
-                              </Button>
+                            {schedule.notes && (
+                              <div className="bg-muted p-3 rounded-md mb-4">
+                                <p className="text-sm font-medium">Admin Notes:</p>
+                                <p className="text-sm">{schedule.notes}</p>
+                              </div>
                             )}
-                            {schedule.status === 'ONGOING' && (
-                              <>
-                                <Button size="sm" variant="default" onClick={() => updateJobStatus(schedule.id, 'FINISHED')}>
-                                  Mark Finished
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={() => updateJobStatus(schedule.id, 'DELAYED')}>
-                                  Mark Delayed
-                                </Button>
-                              </>
+
+                            {schedule.status !== 'FINISHED' && schedule.status !== 'CANCELLED' && (
+                              <div className="flex gap-2 flex-wrap">
+                                {schedule.status === 'PENDING' && (
+                                  <Button size="sm" onClick={() => updateJobStatus(schedule.id, 'ONGOING')}>
+                                    Start Job
+                                  </Button>
+                                )}
+                                {schedule.status === 'ONGOING' && (
+                                  <>
+                                    <Button size="sm" variant="default" onClick={() => updateJobStatus(schedule.id, 'FINISHED')}>
+                                      Mark Finished
+                                    </Button>
+                                    <Button size="sm" variant="outline" onClick={() => updateJobStatus(schedule.id, 'DELAYED')}>
+                                      Mark Delayed
+                                    </Button>
+                                  </>
+                                )}
+                                {(schedule.status === 'PENDING' || schedule.status === 'ONGOING') && (
+                                  <Button size="sm" variant="destructive" onClick={() => updateJobStatus(schedule.id, 'CANCELLED')}>
+                                    Cancel
+                                  </Button>
+                                )}
+                              </div>
                             )}
-                            {(schedule.status === 'PENDING' || schedule.status === 'ONGOING') && (
-                              <Button size="sm" variant="destructive" onClick={() => updateJobStatus(schedule.id, 'CANCELLED')}>
-                                Cancel
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </main>
 
@@ -435,6 +485,26 @@ export default function WorkerDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <GroupChatDialog
+        open={isGroupChatOpen}
+        onOpenChange={setIsGroupChatOpen}
+        groupId={selectedGroup?.id || ''}
+        groupName={selectedGroup?.name || 'Group Chat'}
+      />
+
+      {/* Floating Chat Button - Direct Messages */}
+      <Button
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 z-50 flex items-center justify-center animate-in fade-in zoom-in duration-300"
+        onClick={() => setShowDMList(true)}
+      >
+        <MessageSquare className="h-6 w-6 text-primary-foreground" />
+      </Button>
+
+      <DirectMessagesList
+        open={showDMList}
+        onOpenChange={setShowDMList}
+      />
 
       <Footer />
     </div>

@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
-        const { productId, total, rented, available } = body
+        const { productId, total, rented, broken } = body
 
         if (!productId) {
             return NextResponse.json({ error: 'Missing productId' }, { status: 400 })
@@ -33,8 +33,6 @@ export async function POST(request: Request) {
 
         const currentUnits = product.productUnits
         const currentTotal = currentUnits.length
-        const currentRented = currentUnits.filter(u => u.status === 'IN_USE').length
-        const currentAvailable = currentUnits.filter(u => u.status === 'AVAILABLE').length
 
         await db.$transaction(async (tx) => {
             // 1. Adjust Total Units
@@ -71,9 +69,9 @@ export async function POST(request: Request) {
             }
 
             // Refetch or adjust local count for subsequent steps
-            const updatedUnits = await tx.productUnit.findMany({ where: { productId } })
+            let updatedUnits = await tx.productUnit.findMany({ where: { productId } })
 
-            // 2. Adjust Rented Status
+            // 2. Adjust Rented Status (IN_USE)
             if (rented !== undefined) {
                 const rentedUnits = updatedUnits.filter(u => u.status === 'IN_USE')
                 if (rented > rentedUnits.length) {
@@ -98,10 +96,33 @@ export async function POST(request: Request) {
                 }
             }
 
-            // Note: 'available' is usually a result of total - rented. 
-            // If the user manually sets 'available' specifically, we could implement it, 
-            // but usually setting 'total' and 'rented' is enough to define 'available'.
-            // For now, we prioritize Total and Rented adjustments.
+            // Refetch again for Broken adjustment
+            updatedUnits = await tx.productUnit.findMany({ where: { productId } })
+
+            // 3. Adjust Broken Status (DAMAGED)
+            if (broken !== undefined) {
+                const brokenUnits = updatedUnits.filter(u => u.status === 'DAMAGED')
+                if (broken > brokenUnits.length) {
+                    // Mark some AVAILABLE as DAMAGED
+                    const needed = broken - brokenUnits.length
+                    const availableUnits = updatedUnits.filter(u => u.status === 'AVAILABLE')
+                    const toMarkBroken = availableUnits.slice(0, needed)
+
+                    await tx.productUnit.updateMany({
+                        where: { id: { in: toMarkBroken.map(u => u.id) } },
+                        data: { status: 'DAMAGED' }
+                    })
+                } else if (broken < brokenUnits.length) {
+                    // Mark some DAMAGED as AVAILABLE
+                    const excess = brokenUnits.length - broken
+                    const toMarkAvailable = brokenUnits.slice(0, excess)
+
+                    await tx.productUnit.updateMany({
+                        where: { id: { in: toMarkAvailable.map(u => u.id) } },
+                        data: { status: 'AVAILABLE' }
+                    })
+                }
+            }
 
             // Final Sync: Update the product's cache stock field (available count)
             const finalAvailable = await tx.productUnit.count({
@@ -118,7 +139,7 @@ export async function POST(request: Request) {
             userId: adminId,
             action: 'RECONCILE_INVENTORY',
             entity: 'PRODUCT',
-            details: `Reconciled stock for ${product.name}. Total: ${total}, Rented: ${rented}`
+            details: `Reconciled stock for ${product.name}. Total: ${total}, Rented: ${rented}, Broken: ${broken}`
         })
 
         return NextResponse.json({ success: true })

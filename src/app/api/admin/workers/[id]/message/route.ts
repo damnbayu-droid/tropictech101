@@ -1,5 +1,7 @@
+// Last update: 2026-02-09T22:45:46
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { verifyAuth } from '@/lib/auth/auth-helper'
 import { logActivity } from '@/lib/logger'
 
 /**
@@ -10,20 +12,30 @@ export async function POST(
     { params }: { params: { id: string } }
 ) {
     try {
-        const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-        if (!token) {
+        const user = await verifyAuth(request)
+        if (!user || user.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const { title, message } = await request.json()
-        const adminId = 'admin-id' // Replace with actual admin ID from JWT
+        const adminId = user.id
 
+        // Create in new Message model for chat history
+        await (db as any).message.create({
+            data: {
+                senderId: adminId,
+                receiverId: params.id,
+                content: `${title ? `[${title}] ` : ''}${message}`
+            }
+        })
+
+        // Also create a Notification for the worker's dashboard alerts
         const notification = await db.workerNotification.create({
             data: {
                 workerId: params.id,
                 fromAdminId: adminId,
                 type: 'ADMIN_MESSAGE',
-                title,
+                title: title || 'New Message from Admin',
                 message,
                 isRead: false
             }

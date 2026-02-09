@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import {
   Accordion,
@@ -37,6 +38,30 @@ export default function FAQ() {
       answer: 'We accept PayPal, credit/debit cards, Stripe, cryptocurrency, cash, and WhatsApp orders.',
     },
   ]
+
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <section id="faq" className="py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">{t('faq')}</h2>
+          <div className="max-w-3xl mx-auto space-y-4">
+            {/* Static placeholder to prevent layout shift */}
+            {faqs.map((faq, index) => (
+              <div key={index} className="border-b py-4">
+                <div className="font-medium">{faq.question}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section id="faq" className="py-16">

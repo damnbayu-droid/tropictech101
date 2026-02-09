@@ -7,6 +7,8 @@ import { SystemControl } from "@/components/admin/overview/SystemControl"
 import { OverviewCharts } from "@/components/admin/overview/Charts"
 import { ActivityLogPanel } from "@/components/admin/ActivityLogPanel"
 import { InfoCenter } from "@/components/admin/overview/InfoCenter"
+import { ApiStatusPanel } from "@/components/admin/overview/ApiStatusPanel"
+import { MessagesCTA } from "@/components/admin/overview/MessagesCTA"
 
 async function getStats() {
     const [
@@ -91,9 +93,11 @@ export default async function AdminOverviewPage() {
                     <OverviewCharts userData={mockUserData} revenueData={mockRevenueData} />
                 </div>
                 <div className="lg:col-span-4 space-y-8">
+                    <ApiStatusPanel />
                     <SystemControl />
                     <ActivityLogPanel />
                     {/* The InfoCenter is now managed by RealtimeOverview for updates, but we can also put it here if we pass setNotifications */}
+                    <MessagesCTA />
                 </div>
             </div>
         </div>

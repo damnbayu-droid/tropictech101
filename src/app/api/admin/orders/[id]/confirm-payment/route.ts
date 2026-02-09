@@ -46,7 +46,10 @@ export async function POST(
         const recipients = await getInvoiceRecipients(invoice)
 
         // Generate shareable invoice link
-        const invoiceLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invoice/public/${invoice.shareableToken}`
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        const invoiceLink = `${baseUrl}/invoice/public/${invoice.shareableToken}`
+        console.log('Generated Invoice Link:', invoiceLink)
+        console.log('Base URL:', baseUrl)
 
         // Send email to all recipients
         await sendInvoiceEmail({

@@ -9,7 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Users, UserPlus, MessageSquare, Calendar, CheckCircle2, Clock, TrendingUp } from 'lucide-react'
+import { Users, UserPlus, MessageSquare, Calendar, CheckCircle2, Clock, TrendingUp, Mail, Phone, Shield, FileText } from 'lucide-react'
+import { ChatDialog } from '@/components/chat/ChatDialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
 
 interface Worker {
     id: string
@@ -33,8 +36,9 @@ export default function WorkersPage() {
     const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null)
     const [loading, setLoading] = useState(true)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
-    const [showMessageDialog, setShowMessageDialog] = useState(false)
+    const [showChatDialog, setShowChatDialog] = useState(false)
     const [showAssignJobDialog, setShowAssignJobDialog] = useState(false)
+    const [showDetailDialog, setShowDetailDialog] = useState(false)
 
     useEffect(() => {
         fetchWorkers()
@@ -90,37 +94,7 @@ export default function WorkersPage() {
         }
     }
 
-    const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        if (!selectedWorker) return
-
-        const formData = new FormData(e.currentTarget)
-        const data = {
-            title: formData.get('title'),
-            message: formData.get('message')
-        }
-
-        try {
-            const token = localStorage.getItem('token')
-            const res = await fetch(`/api/admin/workers/${selectedWorker.id}/message`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(data)
-            })
-
-            if (res.ok) {
-                toast.success('Message sent successfully')
-                setShowMessageDialog(false)
-            } else {
-                toast.error('Failed to send message')
-            }
-        } catch (error) {
-            toast.error('Failed to send message')
-        }
-    }
+    // Messaging is now handled by ChatDialog
 
     const assignJob = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -338,19 +312,19 @@ export default function WorkersPage() {
                                     className="gap-2 shrink-0 whitespace-nowrap"
                                     onClick={() => {
                                         setSelectedWorker(worker)
-                                        setShowMessageDialog(true)
+                                        setShowChatDialog(true)
                                     }}
                                 >
                                     <MessageSquare className="w-4 h-4" />
-                                    Send Message
+                                    Chat
                                 </Button>
                                 <Button
                                     size="sm"
                                     variant="outline"
                                     className="shrink-0 whitespace-nowrap"
                                     onClick={() => {
-                                        // Navigate to detailed worker view
-                                        window.location.href = `/admin/workers/${worker.id}`
+                                        setSelectedWorker(worker)
+                                        setShowDetailDialog(true)
                                     }}
                                 >
                                     View Details
@@ -361,23 +335,108 @@ export default function WorkersPage() {
                 ))}
             </div>
 
-            {/* Message Dialog */}
-            <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-                <DialogContent>
+            {/* Chat Dialog */}
+            {selectedWorker && (
+                <ChatDialog
+                    open={showChatDialog}
+                    onOpenChange={setShowChatDialog}
+                    otherUserId={selectedWorker.id}
+                    otherUserName={selectedWorker.fullName}
+                />
+            )}
+
+            {/* Worker Detail Dialog */}
+            <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+                <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Send Message to {selectedWorker?.fullName}</DialogTitle>
+                        <DialogTitle>Worker Details: {selectedWorker?.fullName}</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={sendMessage} className="space-y-4">
-                        <div>
-                            <Label htmlFor="title">Title</Label>
-                            <Input id="title" name="title" required placeholder="Message title" />
+                    {selectedWorker && (
+                        <div className="space-y-6 py-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <h4 className="font-semibold text-lg flex items-center gap-2">
+                                        <Users className="w-5 h-5 text-primary" />
+                                        Personal Information
+                                    </h4>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Mail className="w-4 h-4 text-muted-foreground" />
+                                            <span className="font-medium">Email:</span> {selectedWorker.email}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Phone className="w-4 h-4 text-muted-foreground" />
+                                            <span className="font-medium">WhatsApp:</span> {selectedWorker.whatsapp}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Shield className="w-4 h-4 text-muted-foreground" />
+                                            <span className="font-medium">Status:</span>
+                                            <Badge variant={selectedWorker.isActive ? "default" : "secondary"}>
+                                                {selectedWorker.isActive ? 'Active' : 'Inactive'}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="font-semibold text-lg flex items-center gap-2">
+                                        <TrendingUp className="w-5 h-5 text-primary" />
+                                        Performance Summary
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-muted/50 p-3 rounded-lg">
+                                            <p className="text-xs text-muted-foreground">Completion Rate</p>
+                                            <p className="text-xl font-bold">
+                                                {Math.round((selectedWorker.stats.completedJobs / selectedWorker.stats.totalJobs) * 100 || 0)}%
+                                            </p>
+                                        </div>
+                                        <div className="bg-muted/50 p-3 rounded-lg">
+                                            <p className="text-xs text-muted-foreground">Attendance</p>
+                                            <p className="text-xl font-bold">{selectedWorker.stats.attendanceRate}%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-4">
+                                <h4 className="font-semibold text-lg flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-primary" />
+                                    Recent Job Assignments
+                                </h4>
+                                <ScrollArea className="h-[200px] border rounded-md p-4">
+                                    {selectedWorker.workerSchedules.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {selectedWorker.workerSchedules.map((schedule: any) => (
+                                                <div key={schedule.id} className="flex items-center justify-between text-sm p-2 hover:bg-muted/50 rounded-md transition-colors border-b last:border-0 pb-3">
+                                                    <div>
+                                                        <p className="font-medium">Order: {schedule.order?.orderNumber}</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Scheduled: {new Date(schedule.scheduledDate).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                    <Badge variant="outline">{schedule.status}</Badge>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-center text-muted-foreground py-8">No jobs assigned yet.</p>
+                                    )}
+                                </ScrollArea>
+                            </div>
+
+                            <div className="flex justify-end gap-3 mt-4">
+                                <Button variant="outline" onClick={() => setShowDetailDialog(false)}>Close</Button>
+                                <Button className="gap-2" onClick={() => {
+                                    setShowDetailDialog(false)
+                                    setShowChatDialog(true)
+                                }}>
+                                    <MessageSquare className="w-4 h-4" />
+                                    Open Chat
+                                </Button>
+                            </div>
                         </div>
-                        <div>
-                            <Label htmlFor="message">Message</Label>
-                            <Textarea id="message" name="message" required placeholder="Type your message here..." rows={4} />
-                        </div>
-                        <Button type="submit" className="w-full">Send Message</Button>
-                    </form>
+                    )}
                 </DialogContent>
             </Dialog>
 

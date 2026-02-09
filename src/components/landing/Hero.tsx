@@ -37,7 +37,7 @@ export default function Hero() {
           alt="Tropic Tech Workstation Rental Bali"
           fill
           className="object-cover transition-opacity duration-[3000ms] ease-in-out"
-          style={{ opacity: mounted ? imageOpacity / 100 : 0.5 }}
+          style={{ opacity: mounted ? imageOpacity / 100 : 0 }}
           priority
           loading="eager"
           fetchPriority="high"
@@ -47,7 +47,12 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
       </div>
 
-      <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+      <div
+        className={cn(
+          "relative z-10 text-center px-4 max-w-4xl mx-auto transition-opacity duration-[3000ms] ease-in-out",
+          mounted ? "opacity-100" : "opacity-0"
+        )}
+      >
         <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-tight">
           {t('title')}
         </h1>
@@ -57,7 +62,7 @@ export default function Hero() {
         <p className="text-lg md:text-xl mb-8 text-muted-foreground">
           {t('subtitle2')}
         </p>
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4 mt-16 md:mt-32">
           <Button
             size="lg"
             className="text-lg px-8 py-4 h-auto font-bold shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all rounded-md overflow-hidden group relative"
@@ -74,8 +79,8 @@ export default function Hero() {
       <div
         className={cn(
           "absolute transition-opacity duration-[3000ms] ease-in-out z-20",
-          // Mobile: center-top
-          "top-6 md:top-1/2 left-1/2 md:left-auto md:right-4 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2",
+          // Mobile: center-top with more spacing to avoid header
+          "top-24 md:top-1/2 left-1/2 md:left-auto md:right-4 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2",
           "flex md:flex-col items-center gap-3 bg-background/20 backdrop-blur-xl p-3 md:p-4 rounded-full shadow-2xl border border-white/10",
           sliderOpacity === 0 ? "opacity-0 pointer-events-none" : "opacity-100"
         )}

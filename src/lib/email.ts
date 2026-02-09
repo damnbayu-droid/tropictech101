@@ -17,11 +17,24 @@ export async function sendInvoiceEmail(data: {
   amount: number,
   invoiceLink: string
 }) {
-  const recipients = Array.isArray(data.to) ? data.to.join(', ') : data.to
+  // If 'to' is an array, assuming first one is customer, rest are team
+  // This is a simplification based on how getInvoiceRecipients works
+  let customerEmail = ''
+  let bcc: string[] = []
+
+  if (Array.isArray(data.to)) {
+    if (data.to.length > 0) {
+      customerEmail = data.to[0]
+      bcc = data.to.slice(1)
+    }
+  } else {
+    customerEmail = data.to
+  }
 
   const mailOptions = {
     from: `"Tropic Tech Invoices" <${process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@tropictech.com'}>`,
-    to: recipients,
+    to: customerEmail,
+    bcc: bcc,
     subject: `Invoice ${data.invoiceNumber} - Tropic Tech International`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden;">
@@ -43,6 +56,11 @@ export async function sendInvoiceEmail(data: {
           <div style="text-align: center; margin: 35px 0;">
             <a href="${data.invoiceLink}" style="background-color: #6666FF; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(102, 102, 255, 0.2);">VIEW & DOWNLOAD INVOICE</a>
           </div>
+          
+          <p style="text-align: center; font-size: 12px; color: #64748B;">
+             Or copy this link: <br>
+             <a href="${data.invoiceLink}" style="color: #6666FF;">${data.invoiceLink}</a>
+          </p>
 
           <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 30px 0;">
           
@@ -61,13 +79,15 @@ export async function sendInvoiceEmail(data: {
   try {
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
       console.log('--- DEVELOPMENT MOCK INVOICE EMAIL ---')
-      console.log(`To: ${recipients}`)
+      console.log(`To: ${customerEmail}`)
+      console.log(`BCC: ${bcc.join(', ')}`)
       console.log(`Link: ${data.invoiceLink}`)
       console.log('--------------------------------------')
       return true
     }
 
     await transporter.sendMail(mailOptions)
+    console.log(`Invoice email sent to ${customerEmail} (BCC: ${bcc.length})`)
     return true
   } catch (error) {
     console.error('Error sending invoice email:', error)

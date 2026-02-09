@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import ProductCard from './ProductCard'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,8 @@ import {
   CarouselPrevious,
   type CarouselApi
 } from '@/components/ui/carousel'
+import { Search } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 import { useOrder } from './LandingClient'
 
@@ -22,6 +24,8 @@ export default function Products() {
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<string[]>(['All'])
   const [api, setApi] = useState<CarouselApi>()
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     fetchProducts()
@@ -52,9 +56,28 @@ export default function Products() {
     }
   }
 
-  const filteredProducts = selectedCategory === 'All'
-    ? products
-    : products.filter(p => p.category === selectedCategory)
+  const filteredProducts = products.filter(p => {
+    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
+
+  const searchRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        if (!searchQuery) {
+          setIsSearchOpen(false)
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [searchRef, searchQuery]);
 
   return (
     <section id="products" className="py-16 bg-muted/30">
@@ -64,13 +87,37 @@ export default function Products() {
         </h2>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
+        <div className="flex flex-wrap justify-center items-center gap-2 mb-8">
+          <div ref={searchRef} className="relative flex items-center transition-all duration-300 ease-in-out">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full w-10 h-10 hover:bg-primary/10 hover:text-primary transition-colors z-10"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+            <div className={cn(
+              "absolute left-0 top-0 h-10 bg-background border rounded-full overflow-hidden transition-all duration-300 flex items-center",
+              isSearchOpen || searchQuery.length > 0 ? "w-64 pl-10 pr-4 opacity-100" : "w-10 opacity-0 pointer-events-none"
+            )}>
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full bg-transparent border-none outline-none text-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus={isSearchOpen}
+              />
+            </div>
+          </div>
+
           {categories.map((cat) => (
             <Button
               key={cat}
               variant={selectedCategory === cat ? 'default' : 'outline'}
               onClick={() => setSelectedCategory(cat)}
-              className="rounded-full capitalize"
+              className="rounded-full capitalize px-6 font-bold"
             >
               {cat}
             </Button>

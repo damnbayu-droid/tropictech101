@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { verifyAuth } from '@/lib/auth/auth-helper'
 
 /**
  * Get worker's notifications
  */
 export async function GET(request: NextRequest) {
     try {
-        const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-        if (!token) {
+        const user = await verifyAuth(request)
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const workerId = 'worker-id' // Replace with actual JWT verification
+        const workerId = user.id
 
         const notifications = await db.workerNotification.findMany({
             where: { workerId },
@@ -21,7 +22,17 @@ export async function GET(request: NextRequest) {
             take: 50
         })
 
-        const unreadCount = notifications.filter(n => !n.isRead).length
+        const notificationUnreadCount = notifications.filter(n => !n.isRead).length
+
+        // Also get unread chat messages count
+        const messageUnreadCount = await db.message.count({
+            where: {
+                receiverId: workerId,
+                isRead: false
+            }
+        })
+
+        const unreadCount = notificationUnreadCount + messageUnreadCount
 
         return NextResponse.json({ notifications, unreadCount })
     } catch (error) {
@@ -38,8 +49,8 @@ export async function GET(request: NextRequest) {
  */
 export async function PATCH(request: NextRequest) {
     try {
-        const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-        if (!token) {
+        const user = await verifyAuth(request)
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 

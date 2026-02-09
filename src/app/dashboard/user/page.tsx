@@ -27,19 +27,34 @@ import {
   AlertCircle,
   Package,
   CreditCard,
-  User as UserIcon
+  User as UserIcon,
+  MessageSquare,
+  Headset
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ChatDialog } from '@/components/chat/ChatDialog'
+import { GroupChatDialog } from '@/components/chat/GroupChatDialog'
+import { useNotification } from '@/contexts/NotificationContext'
 
 export default function UserDashboard() {
   const { user } = useAuth()
+  const { unreadMessagesCount } = useNotification()
   const [orders, setOrders] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+
+  // Chat State
+  const [showChatDialog, setShowChatDialog] = useState(false)
+  const [selectedChatUser, setSelectedChatUser] = useState<{ id: string, name: string, image?: string | null } | null>(null)
+  const [supportAdmin, setSupportAdmin] = useState<{ id: string, name: string } | null>(null)
+
+  // Support Group Chat
+  const [showSupportGroup, setShowSupportGroup] = useState(false)
+  const [supportGroup, setSupportGroup] = useState<{ id: string, name: string } | null>(null)
 
   // Profile Edit State
   const [editForm, setEditForm] = useState({
@@ -56,8 +71,44 @@ export default function UserDashboard() {
         whatsapp: user.whatsapp || '',
         baliAddress: user.baliAddress || '',
       })
+      fetchSupportAdmin()
+      fetchSupportGroup()
     }
   }, [user])
+
+  const fetchSupportGroup = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      // Use the init endpoint which creates/returns the group
+      const res = await fetch('/api/groups/support', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.success && data.group) {
+        setSupportGroup({ id: data.group.id, name: data.group.name })
+        return data.group
+      }
+    } catch (e) {
+      console.error('Failed to initialize support group', e)
+    }
+    return null
+  }
+
+  const fetchSupportAdmin = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/users/admins', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.admins && data.admins.length > 0) {
+        setSupportAdmin({ id: data.admins[0].id, name: 'TropicTech Admin' })
+      }
+    } catch (e) {
+      console.error('Failed to fetch support admin')
+    }
+  }
 
   const fetchOrders = async () => {
     try {
@@ -197,6 +248,20 @@ export default function UserDashboard() {
 
   return (
     <div className="space-y-10">
+      {/* CTA Buttons */}
+      <div className="flex flex-row gap-2 justify-end mt-8">
+        {supportGroup && (
+          <Button
+            variant="default"
+            className="gap-2"
+            onClick={() => setShowSupportGroup(true)}
+          >
+            <Headset className="w-4 h-4" />
+            Chat with Admin
+          </Button>
+        )}
+      </div>
+
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-none shadow-sm bg-zinc-900 text-white overflow-hidden group">
@@ -236,6 +301,37 @@ export default function UserDashboard() {
               </div>
               <p className="text-xs text-muted-foreground">Certified 24/7 Support Included</p>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="hover:shadow-md transition-shadow cursor-pointer border-primary/20 bg-primary/5"
+          onClick={() => {
+            console.log('Support Chat Card Clicked', { supportGroup });
+            if (supportGroup) {
+              setShowSupportGroup(true)
+            } else {
+              console.log('Support group missing, attempting fetch...');
+              fetchSupportGroup().then((group) => {
+                if (group) setShowSupportGroup(true);
+              })
+            }
+          }}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Support Chat</CardTitle>
+            <div className="relative">
+              <MessageSquare className="h-4 w-4 text-primary" />
+              {unreadMessagesCount > 0 && (
+                <Badge variant="destructive" className="absolute -top-3 -right-3 h-5 min-w-[20px] px-1 flex items-center justify-center text-[10px] rounded-full">
+                  {unreadMessagesCount}
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">Team</div>
+            <p className="text-xs text-muted-foreground">Chat with Workers</p>
           </CardContent>
         </Card>
       </div>
@@ -336,6 +432,21 @@ export default function UserDashboard() {
                           >
                             DOWNLOAD INVOICE
                           </Button>
+                          {order.workerSchedules?.[0]?.worker && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="w-full font-black rounded-lg gap-2 text-[10px]"
+                              onClick={() => {
+                                const worker = order.workerSchedules[0].worker
+                                setSelectedChatUser({ id: worker.id, name: worker.fullName, image: worker.profileImage })
+                                setShowChatDialog(true)
+                              }}
+                            >
+                              <MessageSquare className="h-3 w-3" />
+                              MESSAGE WORKER
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -579,6 +690,65 @@ export default function UserDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Support CTA */}
+      <Card className="border-none bg-primary text-primary-foreground shadow-2xl shadow-primary/20 rounded-3xl overflow-hidden">
+        <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-5 text-center md:text-left">
+            <div className="h-16 w-16 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
+              <Headset className="h-8 w-8" />
+            </div>
+            <div>
+              <h3 className="text-xl font-black uppercase tracking-widest">Need Assistance?</h3>
+              <p className="opacity-90 font-medium text-sm">Our support team and workers are ready to help with your rental Gear.</p>
+            </div>
+          </div>
+          <Button
+            className="bg-white text-primary hover:bg-zinc-100 font-black rounded-xl px-10 py-7 shadow-xl"
+            onClick={() => {
+              if (supportAdmin) {
+                setSelectedChatUser(supportAdmin)
+                setShowChatDialog(true)
+              } else {
+                toast.error('Support is currently unavailable')
+              }
+            }}
+          >
+            CHAT WITH ADMIN
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Chat Dialog */}
+      {selectedChatUser && (
+        <ChatDialog
+          open={showChatDialog}
+          onOpenChange={setShowChatDialog}
+          otherUserId={selectedChatUser.id}
+          otherUserName={selectedChatUser.name}
+          otherUserImage={selectedChatUser.image}
+        />
+      )}
+
+      {/* Support Group Chat Dialog */}
+      {supportGroup && (
+        <GroupChatDialog
+          open={showSupportGroup}
+          onOpenChange={setShowSupportGroup}
+          groupId={supportGroup.id}
+          groupName={supportGroup.name}
+        />
+      )}
+
+      {/* Floating Chat Button */}
+      {supportGroup && (
+        <Button
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 z-50 flex items-center justify-center animate-in fade-in zoom-in duration-300"
+          onClick={() => setShowSupportGroup(true)}
+        >
+          <Headset className="h-6 w-6 text-primary-foreground" />
+        </Button>
+      )}
     </div>
   )
 }

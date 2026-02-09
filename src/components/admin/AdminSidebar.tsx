@@ -11,10 +11,16 @@ import {
     BarChart3,
     Settings,
     LogOut,
-    Home
+    Home,
+    Sun,
+    Moon,
+    MessageSquare
 } from "lucide-react"
+import { useTheme } from "next-themes"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useNotification } from "@/contexts/NotificationContext"
 
 import {
     Sidebar,
@@ -30,6 +36,7 @@ import {
     SidebarRail,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 
 // Menu items.
 const items = [
@@ -79,6 +86,11 @@ const items = [
         icon: BarChart3,
     },
     {
+        title: "Messages",
+        url: "/admin/messages",
+        icon: MessageSquare,
+    },
+    {
         title: "System Control",
         url: "/admin/system",
         icon: Settings,
@@ -87,6 +99,36 @@ const items = [
 
 export function AdminSidebar() {
     const pathname = usePathname()
+    const { unreadMessagesCount } = useNotification()
+    const { theme, setTheme } = useTheme()
+    const [unreadCount, setUnreadCount] = useState(0)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            try {
+                const token = localStorage.getItem('token')
+                if (!token) return
+                const res = await fetch('/api/messages/unread-count', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                const data = await res.json()
+                if (data.success) {
+                    setUnreadCount(data.count)
+                }
+            } catch (error) {
+                console.error('Failed to fetch unread count')
+            }
+        }
+
+        fetchUnreadCount()
+        const interval = setInterval(fetchUnreadCount, 10000)
+        return () => clearInterval(interval)
+    }, [])
 
     return (
         <Sidebar collapsible="icon">
@@ -107,9 +149,16 @@ export function AdminSidebar() {
                                         isActive={pathname.startsWith(item.url)}
                                         tooltip={item.title}
                                     >
-                                        <Link href={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
+                                        <Link href={item.url} className="flex items-center justify-between w-full">
+                                            <div className="flex items-center gap-2">
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </div>
+                                            {item.title === "Messages" && unreadMessagesCount > 0 && (
+                                                <Badge variant="destructive" className="h-5 min-w-[20px] px-1 ml-auto flex items-center justify-center text-[10px] rounded-full">
+                                                    {unreadMessagesCount}
+                                                </Badge>
+                                            )}
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
@@ -135,6 +184,16 @@ export function AdminSidebar() {
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            tooltip="Toggle Theme"
+                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                        >
+                            {mounted && (theme === 'dark' ? <Sun className="text-yellow-500" /> : <Moon className="text-blue-500" />)}
+                            {!mounted && <Sun className="text-muted-foreground" />}
+                            <span>Toggle Theme</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild tooltip="Log Out">
                             <button

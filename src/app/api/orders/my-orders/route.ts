@@ -35,6 +35,17 @@ export async function GET(request: NextRequest) {
                         }
                     }
                 },
+                workerSchedules: {
+                    include: {
+                        worker: {
+                            select: {
+                                id: true,
+                                fullName: true,
+                                profileImage: true
+                            } as any
+                        }
+                    }
+                },
                 invoices: true
             },
             orderBy: {

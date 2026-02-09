@@ -30,7 +30,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Filter, Loader2, Edit2 } from "lucide-react"
+import { Plus, Filter, Loader2, Edit2, Search } from "lucide-react"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -51,6 +51,7 @@ interface ProductAsset {
     total: number
     available: number
     rented: number
+    broken: number // Added broken field
     status: string
 }
 
@@ -75,6 +76,7 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
     const [editFormData, setEditFormData] = useState({
         total: 0,
         rented: 0,
+        broken: 0, // Added broken field
         available: 0
     })
 
@@ -137,6 +139,7 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
         setEditFormData({
             total: asset.total,
             rented: asset.rented,
+            broken: asset.broken, // Added broken setting
             available: asset.available
         })
         setIsEditAssetOpen(true)
@@ -154,7 +157,8 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
                 body: JSON.stringify({
                     productId: editingAsset.id,
                     total: editFormData.total,
-                    rented: editFormData.rented
+                    rented: editFormData.rented,
+                    broken: editFormData.broken // Send broken field
                 })
             })
 
@@ -176,6 +180,12 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
             case 'DAMAGED': return 'destructive' // red
             default: return 'outline'
         }
+    }
+
+    const getStatusLabel = (status: string) => {
+        if (status === 'DAMAGED') return 'BROKEN'
+        if (status === 'IN_USE') return 'RENTED'
+        return status
     }
 
     return (
@@ -257,9 +267,9 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={onEditAssetSubmit} className="space-y-4 py-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-3 gap-2">
                                 <div className="space-y-2">
-                                    <Label>Total Units</Label>
+                                    <Label className="text-[10px] font-black uppercase">Total</Label>
                                     <Input
                                         type="number"
                                         value={editFormData.total}
@@ -268,13 +278,13 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
                                             setEditFormData({
                                                 ...editFormData,
                                                 total,
-                                                available: total - editFormData.rented
+                                                available: total - editFormData.rented - editFormData.broken
                                             })
                                         }}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Rented (Active)</Label>
+                                    <Label className="text-[10px] font-black uppercase text-orange-600">Rented</Label>
                                     <Input
                                         type="number"
                                         value={editFormData.rented}
@@ -283,7 +293,22 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
                                             setEditFormData({
                                                 ...editFormData,
                                                 rented,
-                                                available: editFormData.total - rented
+                                                available: editFormData.total - rented - editFormData.broken
+                                            })
+                                        }}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-red-600">Broken</Label>
+                                    <Input
+                                        type="number"
+                                        value={editFormData.broken}
+                                        onChange={e => {
+                                            const broken = parseInt(e.target.value) || 0
+                                            setEditFormData({
+                                                ...editFormData,
+                                                broken,
+                                                available: editFormData.total - editFormData.rented - broken
                                             })
                                         }}
                                     />
@@ -312,7 +337,8 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
                                 <TableHead className="text-[10px] uppercase font-black">Asset / Product Name</TableHead>
                                 <TableHead className="text-[10px] uppercase font-black">Type</TableHead>
                                 <TableHead className="text-[10px] uppercase font-black text-center">Available</TableHead>
-                                <TableHead className="text-[10px] uppercase font-black text-center">Rented</TableHead>
+                                <TableHead className="text-[10px] uppercase font-black text-center text-orange-600">Rented</TableHead>
+                                <TableHead className="text-[10px] uppercase font-black text-center text-red-600">Broken</TableHead>
                                 <TableHead className="text-[10px] uppercase font-black text-center">Total Units</TableHead>
                                 <TableHead className="text-[10px] uppercase font-black text-center">Health Status</TableHead>
                                 <TableHead className="text-[10px] uppercase font-black text-right">Action</TableHead>
@@ -327,6 +353,7 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
                                     </TableCell>
                                     <TableCell className="text-center font-black text-green-600">{asset.available}</TableCell>
                                     <TableCell className="text-center font-black text-orange-600">{asset.rented}</TableCell>
+                                    <TableCell className="text-center font-black text-red-600">{asset.broken}</TableCell>
                                     <TableCell className="text-center font-bold text-muted-foreground">{asset.total}</TableCell>
                                     <TableCell className="text-center">
                                         <Badge
@@ -356,12 +383,13 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
             <TabsContent value="units" className="space-y-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex gap-2 w-full md:w-auto">
-                        <div className="relative w-full md:w-64">
+                        <div className="relative w-full md:w-64 group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                             <Input
                                 placeholder="Search unit codes..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="bg-card/50"
+                                className="bg-card/50 pl-9"
                             />
                         </div>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -371,8 +399,8 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
                             <SelectContent>
                                 <SelectItem value="ALL">All Status</SelectItem>
                                 <SelectItem value="AVAILABLE">Available</SelectItem>
-                                <SelectItem value="IN_USE">In Use</SelectItem>
-                                <SelectItem value="DAMAGED">Damaged</SelectItem>
+                                <SelectItem value="IN_USE">Rented</SelectItem>
+                                <SelectItem value="DAMAGED">Broken</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -406,7 +434,7 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
                                         <TableCell className="text-xs">{new Date(unit.purchaseDate).toLocaleDateString()}</TableCell>
                                         <TableCell>
                                             <Badge variant={getStatusColor(unit.status) as any} className="font-black text-[10px]">
-                                                {unit.status}
+                                                {getStatusLabel(unit.status)}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -419,8 +447,8 @@ export function InventoryClient({ initialUnits, productAssets, products }: Inven
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="AVAILABLE">Available</SelectItem>
-                                                    <SelectItem value="IN_USE">In Use</SelectItem>
-                                                    <SelectItem value="DAMAGED">Damaged</SelectItem>
+                                                    <SelectItem value="IN_USE">Rented</SelectItem>
+                                                    <SelectItem value="DAMAGED">Broken</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </TableCell>

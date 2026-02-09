@@ -1,9 +1,12 @@
 import bcrypt from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
+import { NextRequest } from 'next/server'
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-change-in-production'
 )
+
+console.log('utils: JWT_SECRET loaded, length:', JWT_SECRET.length)
 
 export interface JWTPayload {
   userId: string
@@ -35,7 +38,8 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
     return payload as unknown as JWTPayload
-  } catch (error) {
+  } catch (error: any) {
+    console.error('verifyToken failed:', error.message || error)
     return null
   }
 }
@@ -60,3 +64,4 @@ export function generatePassword(): string {
 export function generateResetToken(): string {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
+

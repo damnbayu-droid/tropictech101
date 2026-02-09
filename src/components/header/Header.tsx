@@ -113,6 +113,7 @@ export default function Header() {
 
   const isAdminRoute = pathname?.startsWith('/admin')
   const showLogo = !isAdminRoute || isScrolled
+  const showCTA = !isAdminRoute || isScrolled
 
   return (
     <>
@@ -137,7 +138,29 @@ export default function Header() {
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-6" aria-label="Main navigation">
+            <nav className={cn(
+              "hidden md:flex items-center space-x-6 transition-all duration-500",
+              showCTA ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
+            )} aria-label="Main navigation">
+
+              {/* Landing Page Links */}
+              {pathname === '/' && (
+                <div className="flex items-center space-x-6 mr-4">
+                  <button onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium hover:text-primary transition-colors">
+                    {t('products') || 'Products'}
+                  </button>
+                  <button onClick={() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium hover:text-primary transition-colors">
+                    {t('packages') || 'Packages'}
+                  </button>
+                  <button onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium hover:text-primary transition-colors">
+                    Services
+                  </button>
+                  <button onClick={() => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium hover:text-primary transition-colors">
+                    Reviews
+                  </button>
+                </div>
+              )}
+
               {/* Cart Button with Sheet - Visible to all */}
               {mounted ? (
                 <>
@@ -377,7 +400,10 @@ export default function Header() {
 
             {/* Mobile Menu Button - TODO: Update mobile menu to match */}
             <button
-              className="md:hidden"
+              className={cn(
+                "md:hidden transition-all duration-500",
+                showCTA ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
+              )}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >

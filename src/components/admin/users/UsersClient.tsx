@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
     Table,
     TableBody,
@@ -27,8 +27,10 @@ import {
     FileText,
     Camera,
     Eye,
-    IdCard
+    IdCard,
+    Search
 } from "lucide-react"
+import { ChatDialog } from "@/components/chat/ChatDialog"
 import { Input } from "@/components/ui/input"
 import {
     Dialog,
@@ -61,6 +63,7 @@ interface UsersClientProps {
 
 export function UsersClient({ users }: UsersClientProps) {
     const router = useRouter()
+    const [mounted, setMounted] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedUser, setSelectedUser] = useState<any>(null)
     const [isRentalsOpen, setIsRentalsOpen] = useState(false)
@@ -68,6 +71,10 @@ export function UsersClient({ users }: UsersClientProps) {
     const [isAddUserOpen, setIsAddUserOpen] = useState(false)
     const [isDocsOpen, setIsDocsOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
     const [newUserData, setNewUserData] = useState({
         username: "",
         email: "",
@@ -101,6 +108,14 @@ export function UsersClient({ users }: UsersClientProps) {
     const handleViewDocs = (user: any) => {
         setSelectedUser(user)
         setIsDocsOpen(true)
+    }
+
+    if (!mounted) {
+        return (
+            <div className="flex items-center justify-center p-20">
+                <Loader2 className="h-8 w-8 animate-spin text-primary opacity-20" />
+            </div>
+        )
     }
 
     const handleToggleStatus = async (user: any) => {
@@ -324,23 +339,16 @@ export function UsersClient({ users }: UsersClientProps) {
                 </DialogContent>
             </Dialog>
 
-            {/* Message Dialog */}
-            <Dialog open={isMessageOpen} onOpenChange={setIsMessageOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Send Internal Message to {selectedUser?.fullName || selectedUser?.username}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4 text-center">
-                        <div className="h-32 flex flex-col items-center justify-center bg-muted rounded-xl border border-dashed">
-                            <MessageSquare className="h-10 w-10 text-muted-foreground opacity-20 mb-2" />
-                            <p className="text-sm text-muted-foreground">Supabase Internal Messaging Interface</p>
-                            <p className="text-[10px] text-muted-foreground font-mono mt-1">user_id: {selectedUser?.id}</p>
-                        </div>
-                        <Input placeholder="Type your message here..." className="mt-4" />
-                        <Button className="w-full font-bold">SEND MESSAGE</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            {/* Message Dialog - Using shared ChatDialog */}
+            {selectedUser && (
+                <ChatDialog
+                    open={isMessageOpen}
+                    onOpenChange={setIsMessageOpen}
+                    otherUserId={selectedUser.id}
+                    otherUserName={selectedUser.fullName || selectedUser.username}
+                    otherUserImage={selectedUser.profileImage}
+                />
+            )}
 
             {/* Add User Dialog */}
             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>

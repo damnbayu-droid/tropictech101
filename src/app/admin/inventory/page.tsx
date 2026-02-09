@@ -37,9 +37,11 @@ export default async function AdminInventoryPage() {
     }))
 
     const productAssets = products.map(p => {
-        const available = p.productUnits.filter(u => u.status === 'AVAILABLE').length
-        const rented = p.productUnits.filter(u => u.status === 'IN_USE').length
         const total = p._count.productUnits
+        const rented = p.productUnits.filter(u => u.status === 'IN_USE').length
+        const broken = p.productUnits.filter(u => u.status === 'DAMAGED').length
+        // Logic: Available = Total - Rented - Broken
+        const available = total - rented - broken
 
         return {
             id: p.id,
@@ -48,6 +50,7 @@ export default async function AdminInventoryPage() {
             total,
             available,
             rented,
+            broken,
             status: total > 0 ? (available > 0 ? 'HEALTHY' : 'OUT_OF_STOCK') : 'NO_UNITS'
         }
     })
