@@ -4,6 +4,8 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar"
 import Header from "@/components/header/Header"
 import { Badge } from "@/components/ui/badge"
 
+export const dynamic = 'force-dynamic'
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     return (
         <SidebarProvider>

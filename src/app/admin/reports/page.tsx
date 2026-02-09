@@ -1,4 +1,7 @@
 import { db } from "@/lib/db"
+
+export const dynamic = 'force-dynamic'
+
 import { ReportsClient } from "@/components/admin/reports/ReportsClient"
 
 export default async function AdminReportsPage() {

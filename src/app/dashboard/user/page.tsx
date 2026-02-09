@@ -228,10 +228,22 @@ export default function UserDashboard() {
                           <p className="text-[10px] font-bold text-green-600 tracking-wider">VIA {order.paymentMethod}</p>
                         </div>
                         <div className="flex flex-col w-full gap-2">
-                          <Button size="sm" className="w-full font-black rounded-lg gap-2" shadow="xl" onClick={() => handleExtendRental(order.id)}>
+                          <Button size="sm" className="w-full font-black rounded-lg gap-2" onClick={() => handleExtendRental(order.id)}>
                             EXTEND RENTAL
                           </Button>
-                          <Button size="sm" variant="ghost" className="w-full font-bold text-xs">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="w-full font-bold text-xs"
+                            onClick={() => {
+                              const shareableToken = order.invoices?.[0]?.shareableToken;
+                              if (shareableToken) {
+                                window.open(`/invoice/public/${shareableToken}`, '_blank');
+                              } else {
+                                toast.error('Invoice not yet generated for this order');
+                              }
+                            }}
+                          >
                             DOWNLOAD INVOICE
                           </Button>
                         </div>
@@ -282,7 +294,19 @@ export default function UserDashboard() {
                             <span className="font-bold">Rp {order.totalAmount.toLocaleString('id-ID')}</span>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <Button variant="ghost" size="icon" className="group-hover:text-primary transition-colors">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="group-hover:text-primary transition-colors"
+                              onClick={() => {
+                                const shareableToken = order.invoices?.[0]?.shareableToken;
+                                if (shareableToken) {
+                                  window.open(`/invoice/public/${shareableToken}`, '_blank');
+                                } else {
+                                  toast.error('Invoice link not available');
+                                }
+                              }}
+                            >
                               <Download className="h-4 w-4" />
                             </Button>
                           </td>

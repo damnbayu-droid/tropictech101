@@ -1,5 +1,7 @@
-
 import { db } from "@/lib/db"
+
+export const dynamic = 'force-dynamic'
+
 import { ProductsClient } from "@/components/admin/products/ProductsClient"
 
 export default async function AdminProductsPage() {

@@ -1,5 +1,7 @@
-
 import { db } from "@/lib/db"
+
+export const dynamic = 'force-dynamic'
+
 import { PackagesClient } from "@/components/admin/packages/PackagesClient"
 
 export default async function AdminPackagesPage() {

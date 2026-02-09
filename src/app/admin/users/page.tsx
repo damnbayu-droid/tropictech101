@@ -1,4 +1,7 @@
 import { db } from "@/lib/db"
+
+export const dynamic = 'force-dynamic'
+
 import { UsersClient } from "@/components/admin/users/UsersClient"
 
 export default async function AdminUsersPage() {

@@ -1,9 +1,12 @@
 import { db } from "@/lib/db"
-import { StatCards } from "@/components/admin/overview/StatCards"
+
+export const dynamic = 'force-dynamic'
+
+import { RealtimeOverview } from "@/components/admin/overview/RealtimeOverview"
 import { SystemControl } from "@/components/admin/overview/SystemControl"
 import { OverviewCharts } from "@/components/admin/overview/Charts"
-import { InfoCenter } from "@/components/admin/overview/InfoCenter"
 import { ActivityLogPanel } from "@/components/admin/ActivityLogPanel"
+import { InfoCenter } from "@/components/admin/overview/InfoCenter"
 
 async function getStats() {
     const [
@@ -13,10 +16,11 @@ async function getStats() {
         revenueData,
         notifications,
         totalProducts,
-        totalPackages
+        totalPackages,
+        activeOrders,
+        unresolvedConflicts
     ] = await Promise.all([
         db.user.count(),
-        // Use queryRaw for verified count to bypass potential Prisma Client sync issues with Turbopack
         db.$queryRaw<{ count: bigint }[]>`SELECT count(*)::bigint as count FROM users WHERE is_verified = true`,
         db.invoice.count(),
         db.invoice.aggregate({
@@ -27,12 +31,32 @@ async function getStats() {
             take: 20
         }),
         db.product.count(),
-        db.rentalPackage.count()
+        db.rentalPackage.count(),
+        db.order.count({ where: { status: 'ACTIVE' } }),
+        db.inventorySyncLog.count({ where: { conflict: true, resolved: false } })
     ])
 
     const verifiedCount = Number((verifiedUsers as any)[0]?.count || 0)
 
-    // Mock data for charts since real historical data might be sparse
+    return {
+        cards: {
+            totalUsers,
+            verifiedUsers: verifiedCount,
+            totalTransactions,
+            totalRevenue: Number(revenueData._sum.total || 0),
+            totalProducts,
+            totalPackages,
+            activeOrders,
+            unresolvedConflicts
+        },
+        notifications
+    }
+}
+
+export default async function AdminOverviewPage() {
+    const data = await getStats()
+
+    // Mock data for charts
     const mockRevenueData = [
         { name: 'Jan', total: 15000000, count: 12 },
         { name: 'Feb', total: 22000000, count: 18 },
@@ -51,26 +75,6 @@ async function getStats() {
         { name: 'Jun', registered: 110, active: 95 },
     ]
 
-    return {
-        cards: {
-            totalUsers,
-            verifiedUsers: verifiedCount,
-            totalTransactions,
-            totalRevenue: Number(revenueData._sum.total || 0),
-            totalProducts,
-            totalPackages
-        },
-        notifications,
-        charts: {
-            revenue: mockRevenueData,
-            users: mockUserData
-        }
-    }
-}
-
-export default async function AdminOverviewPage() {
-    const data = await getStats()
-
     return (
         <div className="space-y-8 pb-10">
             <div className="flex flex-col gap-2">
@@ -78,18 +82,18 @@ export default async function AdminOverviewPage() {
                 <p className="text-muted-foreground font-medium italic">Command Center</p>
             </div>
 
-            <div className="space-y-8 px-1">
-                <StatCards stats={data.cards} />
+            <RealtimeOverview initialData={data}>
+                {/* RealtimeOverview only wraps part of the UI now, we'll keep charts outside for better control */}
+            </RealtimeOverview>
 
-                <div className="grid gap-8 lg:grid-cols-12">
-                    <div className="lg:col-span-8 space-y-8">
-                        <OverviewCharts userData={data.charts.users} revenueData={data.charts.revenue} />
-                    </div>
-                    <div className="lg:col-span-4 space-y-8">
-                        <SystemControl />
-                        <ActivityLogPanel />
-                        <InfoCenter notifications={data.notifications} />
-                    </div>
+            <div className="grid gap-8 lg:grid-cols-12">
+                <div className="lg:col-span-8 space-y-8">
+                    <OverviewCharts userData={mockUserData} revenueData={mockRevenueData} />
+                </div>
+                <div className="lg:col-span-4 space-y-8">
+                    <SystemControl />
+                    <ActivityLogPanel />
+                    {/* The InfoCenter is now managed by RealtimeOverview for updates, but we can also put it here if we pass setNotifications */}
                 </div>
             </div>
         </div>

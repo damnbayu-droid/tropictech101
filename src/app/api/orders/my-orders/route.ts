@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { verifyToken } from '@/lib/auth/utils'
 
 /**
  * Get current user's orders
@@ -11,8 +12,11 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // TODO: Verify JWT and get actual user ID
-        const userId = 'user-id' // Replace with actual JWT verification
+        const payload = await verifyToken(token)
+        if (!payload) {
+            return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+        }
+        const userId = payload.userId
 
         const orders = await db.order.findMany({
             where: { userId },

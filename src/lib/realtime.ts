@@ -106,6 +106,30 @@ export class RealtimePoller {
     }
 
     /**
+     * Poll for overall admin dashboard statistics
+     */
+    pollAdminData(token: string) {
+        this.stop()
+
+        const poll = async () => {
+            try {
+                const res = await fetch('/api/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                if (res.ok) {
+                    const data = await res.json()
+                    this.config.onUpdate?.({ adminStats: data })
+                }
+            } catch (error) {
+                this.config.onError?.(error as Error)
+            }
+        }
+
+        poll()
+        this.intervalId = setInterval(poll, this.config.interval)
+    }
+
+    /**
      * Stop polling
      */
     stop() {

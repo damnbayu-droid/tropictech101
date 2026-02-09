@@ -1,4 +1,7 @@
 import { db } from "@/lib/db"
+
+export const dynamic = 'force-dynamic'
+
 import { InvoicesClient } from "@/components/admin/invoices/InvoicesClient"
 
 export default async function AdminInvoicesPage() {

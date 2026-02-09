@@ -1,5 +1,7 @@
-
 import { db } from "@/lib/db"
+
+export const dynamic = 'force-dynamic'
+
 import { InventoryClient } from "@/components/admin/inventory/InventoryClient"
 
 export default async function AdminInventoryPage() {
