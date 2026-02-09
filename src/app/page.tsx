@@ -39,7 +39,7 @@ export default function Home() {
               "@type": "RentalBusiness",
               "name": "Tropic Tech - #1 Workstation Rental Bali",
               "description": "Premium workstation and office equipment rental in Bali. High-performance monitors, ergonomic chairs, and desks for digital nomads. 5+ years experience with fast island-wide delivery.",
-              "url": "https://tropictechbali.com",
+              "url": "https://testdomain.fun",
               "telephone": "+6282266574860",
               "email": "tropictechindo@gmail.com",
               "logo": "https://i.ibb.co.com/Pzbsg8mx/2.jpg",

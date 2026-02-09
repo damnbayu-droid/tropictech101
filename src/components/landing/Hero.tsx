@@ -36,7 +36,7 @@ export default function Hero() {
           src="/images/hero.webp"
           alt="Tropic Tech Workstation Rental Bali"
           fill
-          className="object-cover transition-opacity duration-300 ease-in-out"
+          className="object-cover transition-opacity duration-[3000ms] ease-in-out"
           style={{ opacity: mounted ? imageOpacity / 100 : 0.5 }}
           priority
           loading="eager"

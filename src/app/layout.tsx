@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://tropictechbali.com'),
+  metadataBase: new URL('https://testdomain.fun'),
   title: "Tropic Tech | #1 Workstation & Office Rental Bali",
   description: "Rent premium workstations, ergonomic chairs, monitors, and desks in Bali. 5+ years experience serving digital nomads and remote workers. Daily, weekly, and monthly rentals with fast island-wide delivery.",
   keywords: ["Workstation Rental Bali", "Rent Office Chair Bali", "Monitor Rental Bali", "Tropic Tech Bali", "Canggu Coworking Equipment", "Ubud Desktop Rental", "Remote Work Bali", "Desk Rental Bali", "Digital Nomad Bali", "Ergonomic office equipment rental Indonesia"],
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Tropic Tech - Rent Workstation in Bali",
     description: "Professional workstation rental in Bali. 5+ years experience serving digital nomads and remote workers with fast delivery.",
-    url: "https://tropictechbali.com",
+    url: "https://testdomain.fun",
     siteName: "Tropic Tech",
     type: "website",
     locale: "en_US",
@@ -65,10 +65,10 @@ export const metadata: Metadata = {
   },
   manifest: "/site.webmanifest",
   alternates: {
-    canonical: "https://tropictechbali.com",
+    canonical: "https://testdomain.fun",
     languages: {
-      'en': 'https://tropictechbali.com/en',
-      'id': 'https://tropictechbali.com/id',
+      'en': 'https://testdomain.fun/en',
+      'id': 'https://testdomain.fun/id',
     },
   },
   verification: {
