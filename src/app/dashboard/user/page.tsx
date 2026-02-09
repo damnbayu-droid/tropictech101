@@ -13,10 +13,6 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle,
-  Package,
-  CreditCard,
-  User as UserIcon,
   ShoppingBag,
   ChevronRight,
   ShieldCheck,
@@ -29,6 +25,8 @@ import {
   Pencil,
   Loader2,
   AlertCircle,
+  Package,
+  CreditCard,
   User as UserIcon
 } from 'lucide-react'
 import { toast } from 'sonner'
