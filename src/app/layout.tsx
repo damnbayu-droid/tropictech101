@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "https://i.ibb.co.com/Pzbsg8mx/2.jpg",
+        url: "/images/og-image.webp",
         width: 1200,
         height: 630,
         alt: "Tropic Tech Workstation Rental",
@@ -56,13 +56,13 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tropic Tech - Workstation Rental in Bali",
     description: "Professional workstation rental in Bali. 5+ years experience serving digital nomads.",
-    images: ["https://i.ibb.co.com/Pzbsg8mx/2.jpg"],
+    images: ["/images/og-image.webp"],
     creator: "@tropictechs",
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: "/images/Logo.webp",
+    shortcut: "/images/Logo.webp",
+    apple: "/images/Logo.webp",
   },
   manifest: "/site.webmanifest",
   alternates: {
@@ -85,8 +85,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://i.ibb.co.com" />
-        <link rel="dns-prefetch" href="https://i.ibb.co.com" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
