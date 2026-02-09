@@ -22,13 +22,12 @@ import {
     Loader2,
     ToggleLeft,
     ToggleRight,
-    Search,
-    MessageSquare,
     MessageSquare,
     MoreHorizontal,
     FileText,
     Camera,
-    Eye
+    Eye,
+    IdCard
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {

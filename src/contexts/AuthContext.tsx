@@ -10,6 +10,9 @@ interface User {
   role: 'USER' | 'WORKER' | 'ADMIN'
   whatsapp?: string
   baliAddress?: string
+  profileImage?: string
+  identityFile?: string
+  identityType?: string
 }
 
 interface AuthContextType {

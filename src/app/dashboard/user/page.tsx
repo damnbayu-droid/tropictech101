@@ -20,14 +20,16 @@ import {
   ShoppingBag,
   ChevronRight,
   ShieldCheck,
-  ShieldCheck,
   TrendingUp,
   MapPin,
   Camera,
   Upload,
   UserCheck,
   IdCard,
-  Pencil
+  Pencil,
+  Loader2,
+  AlertCircle,
+  User as UserIcon
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
