@@ -326,41 +326,99 @@ export function SupportChatHub({ open, onOpenChange, defaultSupportGroupId }: Su
                         )}
 
                         {/* List Items */}
-                        {!loading && activeTab === 'conversations' && filteredItems.map((item: any) => (
-                            <div
-                                key={`${item.type}-${item.id}`}
-                                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedConversation?.id === item.id ? 'bg-primary/10' : 'hover:bg-muted'}`}
-                                onClick={() => setSelectedConversation(item)}
-                            >
-                                <div className="relative">
-                                    <Avatar>
-                                        <AvatarImage src={item.image || undefined} />
-                                        <AvatarFallback>{item.type === 'GROUP' ? <Users className="h-4 w-4" /> : item.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    {item.unreadCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-background" />
-                                    )}
-                                </div>
-                                <div className="flex-1 overflow-hidden">
-                                    <div className="flex justify-between items-center mb-0.5">
-                                        <span className="font-medium text-sm truncate">{item.name}</span>
-                                        {item.lastMessage && (
-                                            <span className="text-[10px] text-muted-foreground">
-                                                {new Date(item.lastMessage.createdAt).toLocaleDateString()}
-                                            </span>
-                                        )}
+                        {!loading && activeTab === 'conversations' && (
+                            <div className="space-y-6">
+                                {/* Direct Conversations Section */}
+                                {conversations.filter(c => c.type === 'DIRECT' && c.name.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 && (
+                                    <div className="space-y-1">
+                                        <div className="px-3 flex items-center justify-between">
+                                            <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Individual Chat</h3>
+                                            <Badge variant="secondary" className="text-[8px] h-3 px-1">
+                                                {conversations.filter(c => c.type === 'DIRECT' && c.name.toLowerCase().includes(searchTerm.toLowerCase())).length}
+                                            </Badge>
+                                        </div>
+                                        {conversations.filter(c => c.type === 'DIRECT' && c.name.toLowerCase().includes(searchTerm.toLowerCase())).map((item: any) => (
+                                            <div
+                                                key={`${item.type}-${item.id}`}
+                                                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${selectedConversation?.id === item.id ? 'bg-primary/10' : 'hover:bg-muted/50'}`}
+                                                onClick={() => setSelectedConversation(item)}
+                                            >
+                                                <div className="relative">
+                                                    <Avatar className="h-10 w-10 border-2 border-background">
+                                                        <AvatarImage src={item.image || undefined} />
+                                                        <AvatarFallback className="bg-primary/10 text-primary font-bold">{item.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    {item.unreadCount > 0 && (
+                                                        <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 bg-red-500 rounded-full border-2 border-background animate-pulse" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <div className="flex justify-between items-center mb-0.5">
+                                                        <span className="font-bold text-sm truncate">{item.name}</span>
+                                                        {item.lastMessage && (
+                                                            <span className="text-[9px] font-medium text-muted-foreground">
+                                                                {new Date(item.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex justify-between items-center gap-2">
+                                                        <p className="text-xs text-muted-foreground truncate flex-1">
+                                                            {item.lastMessage?.content || 'No messages'}
+                                                        </p>
+                                                        <Badge variant="outline" className="text-[8px] h-3 px-1 border-primary/20 text-primary bg-primary/5 uppercase font-black">Individual</Badge>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <p className="text-xs text-muted-foreground truncate max-w-[140px]">
-                                            {item.lastMessage?.content || 'No messages'}
-                                        </p>
-                                        {item.type === 'GROUP' && (
-                                            <Badge variant="outline" className="text-[8px] h-4 px-1">Group</Badge>
-                                        )}
+                                )}
+
+                                {/* Group Conversations Section */}
+                                {conversations.filter(c => c.type === 'GROUP' && c.name.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 && (
+                                    <div className="space-y-1">
+                                        <div className="px-3 flex items-center justify-between">
+                                            <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Group Chat</h3>
+                                            <Badge variant="secondary" className="text-[8px] h-3 px-1">
+                                                {conversations.filter(c => c.type === 'GROUP' && c.name.toLowerCase().includes(searchTerm.toLowerCase())).length}
+                                            </Badge>
+                                        </div>
+                                        {conversations.filter(c => c.type === 'GROUP' && c.name.toLowerCase().includes(searchTerm.toLowerCase())).map((item: any) => (
+                                            <div
+                                                key={`${item.type}-${item.id}`}
+                                                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${selectedConversation?.id === item.id ? 'bg-primary/10' : 'hover:bg-muted/50'}`}
+                                                onClick={() => setSelectedConversation(item)}
+                                            >
+                                                <div className="relative">
+                                                    <Avatar className="h-10 w-10 border-2 border-background">
+                                                        <AvatarImage src={item.image || undefined} />
+                                                        <AvatarFallback className="bg-indigo-500/10 text-indigo-600 font-bold"><Users className="h-4 w-4" /></AvatarFallback>
+                                                    </Avatar>
+                                                    {item.unreadCount > 0 && (
+                                                        <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 bg-red-500 rounded-full border-2 border-background animate-pulse" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <div className="flex justify-between items-center mb-0.5">
+                                                        <span className="font-bold text-sm truncate">{item.name}</span>
+                                                        {item.lastMessage && (
+                                                            <span className="text-[9px] font-medium text-muted-foreground">
+                                                                {new Date(item.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex justify-between items-center gap-2">
+                                                        <p className="text-xs text-muted-foreground truncate flex-1">
+                                                            {item.lastMessage?.content || 'No messages'}
+                                                        </p>
+                                                        <Badge variant="outline" className="text-[8px] h-3 px-1 border-indigo-500/20 text-indigo-600 bg-indigo-500/5 uppercase font-black">Group</Badge>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                </div>
+                                )}
                             </div>
-                        ))}
+                        )}
 
                         {!loading && activeTab === 'users' && filteredItems.map((user: any) => (
                             <div
@@ -416,9 +474,21 @@ export function SupportChatHub({ open, onOpenChange, defaultSupportGroupId }: Su
                                         <AvatarFallback>{selectedConversation.type === 'GROUP' ? <Users /> : selectedConversation.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <h3 className="font-bold">{selectedConversation.name}</h3>
-                                        <p className="text-xs text-muted-foreground">
-                                            {selectedConversation.type === 'GROUP' ? 'Group Chat' : 'Direct Message'}
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="font-black text-sm uppercase tracking-tight">{selectedConversation.name}</h3>
+                                            <Badge
+                                                variant="outline"
+                                                className={`text-[8px] h-4 px-1 uppercase font-black ${selectedConversation.type === 'GROUP'
+                                                        ? 'border-indigo-500/20 text-indigo-600 bg-indigo-500/5'
+                                                        : 'border-primary/20 text-primary bg-primary/5'
+                                                    }`}
+                                            >
+                                                {selectedConversation.type === 'GROUP' ? 'Group' : 'Individual'}
+                                            </Badge>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
+                                            <span className={`h-1.5 w-1.5 rounded-full ${selectedConversation.type === 'GROUP' ? 'bg-indigo-500' : 'bg-primary'} animate-pulse`} />
+                                            {selectedConversation.type === 'GROUP' ? 'Active Group Conversation' : 'Direct Support Connection'}
                                         </p>
                                     </div>
                                 </div>

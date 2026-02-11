@@ -196,9 +196,25 @@ export default function ProductDetailPage() {
                                     Rent Now
                                 </Button>
                             </div>
-                            <Button variant="outline" className="w-full" onClick={() => {
-                                navigator.clipboard.writeText(window.location.href)
-                                toast.success("Link copied")
+                            <Button variant="outline" className="w-full" onClick={async () => {
+                                try {
+                                    if (navigator.share) {
+                                        await navigator.share({
+                                            title: item.name,
+                                            text: item.description,
+                                            url: window.location.href,
+                                        })
+                                        toast.success("Shared successfully")
+                                    } else {
+                                        await navigator.clipboard.writeText(window.location.href)
+                                        toast.success("Link copied")
+                                    }
+                                } catch (error) {
+                                    if ((error as Error).name !== 'AbortError') {
+                                        console.error("Error sharing:", error)
+                                        toast.error("Failed to share")
+                                    }
+                                }
                             }}>
                                 <Share2 className="mr-2 h-4 w-4" /> Share this item
                             </Button>

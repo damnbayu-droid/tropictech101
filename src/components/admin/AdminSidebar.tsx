@@ -46,8 +46,18 @@ const items = [
         icon: LayoutDashboard,
     },
     {
+        title: "Messages",
+        url: "/admin/messages",
+        icon: MessageSquare,
+    },
+    {
         title: "User Management",
         url: "/admin/users",
+        icon: Users,
+    },
+    {
+        title: "Workers Panel",
+        url: "/admin/workers",
         icon: Users,
     },
     {
@@ -71,11 +81,6 @@ const items = [
         icon: ShoppingCart,
     },
     {
-        title: "Workers Panel",
-        url: "/admin/workers",
-        icon: Users,
-    },
-    {
         title: "Invoices",
         url: "/admin/invoices",
         icon: FileText,
@@ -84,11 +89,6 @@ const items = [
         title: "Reports",
         url: "/admin/reports",
         icon: BarChart3,
-    },
-    {
-        title: "Messages",
-        url: "/admin/messages",
-        icon: MessageSquare,
     },
     {
         title: "System Control",

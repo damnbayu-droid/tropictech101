@@ -16,6 +16,15 @@ import Image from 'next/image'
 import Header from '@/components/header/Header'
 import Footer from '@/components/landing/Footer'
 import { toast } from 'sonner'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+import { countries, normalizeWhatsApp } from '@/lib/utils/whatsapp'
+import { AlertCircle } from 'lucide-react'
 
 const paymentMethods = [
     { id: 'WISE', name: 'Wise', icon: <Globe className="h-6 w-6" />, desc: 'International transfer' },
@@ -39,21 +48,36 @@ export default function CheckoutPage() {
     const [formData, setFormData] = useState({
         name: user?.fullName || '',
         email: user?.email || '',
-        whatsapp: '',
+        whatsappCode: '+62',
+        whatsappNumber: '',
         address: '',
         linkAddress: '', // Google Maps Link
     })
     const [paymentMethod, setPaymentMethod] = useState('WISE')
     const [isSubmitting, setIsSubmitting] = useState(false)
 
+    // Check if any item is out of stock
+    const hasOutOfStockItems = items.some(item => (item as any).stock === 0)
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
     }
 
+    const handleWhatsAppRedirect = () => {
+        const adminNumber = '6282266574860'
+        const message = encodeURIComponent('Hello, i want to Rent but the stock is empty, can you help me with that?')
+        window.open(`https://wa.me/${adminNumber}?text=${message}`, '_blank')
+    }
+
     const handleBuy = async () => {
-        if (!formData.name || !formData.email || !formData.whatsapp || !formData.address) {
+        if (!formData.name || !formData.email || !formData.whatsappNumber || !formData.address) {
             toast.error('Please fill in all required fields')
+            return
+        }
+
+        if (hasOutOfStockItems) {
+            toast.error('Some items in your cart are out of stock. Please use the WhatsApp contact.')
             return
         }
 
@@ -124,7 +148,35 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="whatsapp">Whatsapp</Label>
-                                        <Input id="whatsapp" name="whatsapp" value={formData.whatsapp} onChange={handleInputChange} placeholder="+62..." />
+                                        <div className="flex gap-2">
+                                            <Select
+                                                value={formData.whatsappCode}
+                                                onValueChange={(val) => setFormData(prev => ({ ...prev, whatsappCode: val }))}
+                                                disabled={isSubmitting}
+                                            >
+                                                <SelectTrigger className="w-[100px]">
+                                                    <SelectValue placeholder="Code" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {countries.map((c) => (
+                                                        <SelectItem key={c.code + c.name} value={c.code}>
+                                                            <span className="flex items-center gap-2">
+                                                                <span>{c.flag}</span>
+                                                                <span>{c.code}</span>
+                                                            </span>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Input
+                                                id="whatsapp"
+                                                name="whatsappNumber"
+                                                value={formData.whatsappNumber}
+                                                onChange={handleInputChange}
+                                                placeholder="812345678"
+                                                className="flex-1"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -208,9 +260,32 @@ export default function CheckoutPage() {
                                 </div>
                             </div>
 
+                            {hasOutOfStockItems && (
+                                <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-xl space-y-3">
+                                    <div className="flex items-center gap-2 text-orange-700 font-bold text-sm uppercase tracking-tight">
+                                        <AlertCircle className="h-4 w-4" />
+                                        Set Order new Equipment
+                                    </div>
+                                    <p className="text-xs text-orange-600 font-medium">
+                                        Some items are currently out of stock. We can arrange it for you via our personal support.
+                                    </p>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full border-orange-200 text-orange-700 hover:bg-orange-100 font-bold"
+                                        onClick={handleWhatsAppRedirect}
+                                    >
+                                        Contact Admin (Empty Stock)
+                                    </Button>
+                                </div>
+                            )}
+
                             <div className="mt-8">
-                                <Button className="w-full text-lg py-6" onClick={handleBuy} disabled={isSubmitting}>
-                                    {isSubmitting ? 'Processing...' : 'Pay Now'}
+                                <Button
+                                    className="w-full text-lg py-6"
+                                    onClick={handleBuy}
+                                    disabled={isSubmitting || hasOutOfStockItems}
+                                >
+                                    {isSubmitting ? 'Processing...' : hasOutOfStockItems ? 'Unavailable' : 'Pay Now'}
                                 </Button>
                                 <p className="text-xs text-center text-muted-foreground mt-4">
                                     By clicking "Pay Now", you agree to our terms and conditions.

@@ -19,6 +19,15 @@ import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+import { countries, normalizeWhatsApp } from '@/lib/utils/whatsapp'
+
 interface SignupModalProps {
     isOpen: boolean
     onClose: () => void
@@ -28,7 +37,8 @@ interface SignupModalProps {
 export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalProps) {
     const [fullName, setFullName] = useState('')
     const [email, setEmail] = useState('')
-    const [whatsapp, setWhatsapp] = useState('')
+    const [whatsappCode, setWhatsappCode] = useState('+62')
+    const [whatsappNumber, setWhatsappNumber] = useState('')
     const [password, setPassword] = useState('')
     const [baliAddress, setBaliAddress] = useState('')
     const [mapsAddressLink, setMapsAddressLink] = useState('')
@@ -63,6 +73,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         setIsLoading(true)
 
         try {
+            const normalizedWhatsapp = normalizeWhatsApp(whatsappCode, whatsappNumber)
+
             const response = await fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: {
@@ -71,7 +83,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
                 body: JSON.stringify({
                     fullName,
                     email,
-                    whatsapp,
+                    whatsapp: normalizedWhatsapp,
                     password,
                     baliAddress,
                     mapsAddressLink,
@@ -126,15 +138,37 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="whatsapp">WhatsApp *</Label>
-                        <Input
-                            id="whatsapp"
-                            type="tel"
-                            value={whatsapp}
-                            onChange={(e) => setWhatsapp(e.target.value)}
-                            placeholder="+62..."
-                            required
-                            disabled={isLoading}
-                        />
+                        <div className="flex gap-2">
+                            <Select
+                                value={whatsappCode}
+                                onValueChange={setWhatsappCode}
+                                disabled={isLoading}
+                            >
+                                <SelectTrigger className="w-[110px]">
+                                    <SelectValue placeholder="Code" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {countries.map((c) => (
+                                        <SelectItem key={c.code + c.name} value={c.code}>
+                                            <span className="flex items-center gap-2">
+                                                <span>{c.flag}</span>
+                                                <span>{c.code}</span>
+                                            </span>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Input
+                                id="whatsapp"
+                                type="tel"
+                                value={whatsappNumber}
+                                onChange={(e) => setWhatsappNumber(e.target.value)}
+                                placeholder="812345678"
+                                className="flex-1"
+                                required
+                                disabled={isLoading}
+                            />
+                        </div>
                     </div>
 
                     <div className="space-y-2">

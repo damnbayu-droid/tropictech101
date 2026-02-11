@@ -38,6 +38,15 @@ import { Label } from '@/components/ui/label'
 import { SupportChatHub } from '@/components/chat/SupportChatHub'
 import { useNotification } from '@/contexts/NotificationContext'
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { countries, normalizeWhatsApp } from '@/lib/utils/whatsapp'
+
 export default function UserDashboard() {
   const { user } = useAuth()
   const { unreadMessagesCount } = useNotification()
@@ -56,16 +65,31 @@ export default function UserDashboard() {
   // Profile Edit State
   const [editForm, setEditForm] = useState({
     fullName: '',
-    whatsapp: '',
+    whatsappCode: '+62',
+    whatsappNumber: '',
     baliAddress: '',
   })
 
   useEffect(() => {
     if (user) {
       fetchOrders()
+
+      // Try to split user.whatsapp into code and number
+      let code = '+62'
+      let num = user.whatsapp || ''
+
+      for (const c of countries) {
+        if (num.startsWith(c.code)) {
+          code = c.code
+          num = num.substring(c.code.length)
+          break
+        }
+      }
+
       setEditForm({
         fullName: user.fullName || '',
-        whatsapp: user.whatsapp || '',
+        whatsappCode: code,
+        whatsappNumber: num,
         baliAddress: user.baliAddress || '',
       })
       fetchSupportGroup()
@@ -114,6 +138,8 @@ export default function UserDashboard() {
     e.preventDefault()
     setIsUpdating(true)
     try {
+      const normalizedWhatsapp = normalizeWhatsApp(editForm.whatsappCode, editForm.whatsappNumber)
+
       const token = localStorage.getItem('token')
       const response = await fetch('/api/auth/me', {
         method: 'PUT',
@@ -121,7 +147,11 @@ export default function UserDashboard() {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          fullName: editForm.fullName,
+          whatsapp: normalizedWhatsapp,
+          baliAddress: editForm.baliAddress,
+        }),
       })
 
       if (response.ok) {
@@ -590,11 +620,33 @@ export default function UserDashboard() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">WhatsApp Contact</Label>
-                      <Input
-                        value={editForm.whatsapp}
-                        onChange={(e) => setEditForm({ ...editForm, whatsapp: e.target.value })}
-                        className="rounded-xl font-bold bg-muted/30 border-none h-12"
-                      />
+                      <div className="flex gap-2">
+                        <Select
+                          value={editForm.whatsappCode}
+                          onValueChange={(val) => setEditForm({ ...editForm, whatsappCode: val })}
+                          disabled={isUpdating}
+                        >
+                          <SelectTrigger className="w-[110px] h-12 rounded-xl bg-muted/30 border-none">
+                            <SelectValue placeholder="Code" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {countries.map((c) => (
+                              <SelectItem key={c.code + c.name} value={c.code}>
+                                <span className="flex items-center gap-2">
+                                  <span>{c.flag}</span>
+                                  <span>{c.code}</span>
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          value={editForm.whatsappNumber}
+                          onChange={(e) => setEditForm({ ...editForm, whatsappNumber: e.target.value })}
+                          className="flex-1 rounded-xl font-bold bg-muted/30 border-none h-12"
+                          placeholder="812345678"
+                        />
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bali Delivery Address</Label>
@@ -710,6 +762,6 @@ export default function UserDashboard() {
       >
         <Headset className="h-6 w-6 text-primary-foreground" />
       </Button>
-    </div>
+    </div >
   )
 }

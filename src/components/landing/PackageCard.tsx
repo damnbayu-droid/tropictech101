@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCart } from '@/contexts/CartContext'
 import { ShoppingCart, Share2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ProductDetailModal } from './ProductDetailModal'
@@ -35,17 +36,31 @@ export default function PackageCard({ package: pkg, onOrder }: PackageCardProps)
   const { t } = useLanguage()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handleShare = (e: React.MouseEvent) => {
+  const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    const shareUrl = `${window.location.origin}/product/${pkg.id}`
+
     if (navigator.share) {
-      navigator.share({
-        title: pkg.name,
-        text: pkg.description,
-        url: window.location.href,
-      }).catch(console.error)
+      try {
+        await navigator.share({
+          title: pkg.name,
+          text: pkg.description,
+          url: shareUrl,
+        })
+        toast.success("Shared successfully")
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error sharing:', error)
+          toast.error("Failed to share")
+        }
+      }
     } else {
-      navigator.clipboard.writeText(window.location.href)
-      // simplified toast
+      try {
+        await navigator.clipboard.writeText(shareUrl)
+        toast.success("Link copied to clipboard")
+      } catch (err) {
+        toast.error("Failed to copy link")
+      }
     }
   }
 

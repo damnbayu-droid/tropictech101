@@ -67,19 +67,24 @@ export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailMo
     }
 
     const handleShare = async () => {
+        const shareUrl = `${window.location.origin}/product/${product.id}`
         try {
             if (navigator.share) {
                 await navigator.share({
                     title: product.name,
                     text: product.description,
-                    url: window.location.href,
+                    url: shareUrl,
                 })
+                toast.success("Shared successfully")
             } else {
-                await navigator.clipboard.writeText(window.location.href)
+                await navigator.clipboard.writeText(shareUrl)
                 toast.success("Link copied to clipboard")
             }
         } catch (error) {
-            console.log("Error sharing:", error)
+            if ((error as Error).name !== 'AbortError') {
+                console.error("Error sharing:", error)
+                toast.error("Failed to share")
+            }
         }
     }
 

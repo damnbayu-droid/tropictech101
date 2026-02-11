@@ -22,7 +22,7 @@ async function main() {
             description: 'Compact and efficient desk perfect for solo workers and small spaces.',
             price: 580000,
             category: 'Desk',
-            image: '/images/products/desk-workstation-solo.jpg',
+            image: '/products/Workstation Solo.webp',
             features: ['Compact Design', 'Sturdy Build', 'Easy Assembly', 'Portable'],
             inStock: true,
             specs: {
@@ -39,7 +39,7 @@ async function main() {
             description: 'Reliable core workstation desk for everyday productivity.',
             price: 680000,
             category: 'Desk',
-            image: '/images/products/desk-workstation-core.jpg',
+            image: '/products/Workstation Core.webp',
             features: ['Spacious Surface', 'Durable Frame', 'Cable Management', 'Modern Design'],
             inStock: true,
         },
@@ -49,7 +49,7 @@ async function main() {
             description: 'Enhanced workstation with additional features for professionals.',
             price: 750000,
             category: 'Desk',
-            image: '/images/products/desk-workstation-plus.jpg',
+            image: '/products/Workstation Plus.webp',
             features: ['Large Work Surface', 'Height Adjustable', 'Premium Materials', 'Ergonomic Design'],
             inStock: true,
             specs: {
@@ -65,7 +65,7 @@ async function main() {
             description: 'Professional-grade desk for maximum productivity and comfort.',
             price: 850000,
             category: 'Desk',
-            image: '/images/products/desk-workstation-pro.jpg',
+            image: '/products/Workstation Pro.webp',
             features: ['Electric Height Adjustment', 'Memory Presets', 'Premium Finish', 'Heavy Duty'],
             inStock: true,
             specs: {
@@ -83,7 +83,7 @@ async function main() {
             description: 'Crystal clear 27-inch HD monitor for everyday work and entertainment.',
             price: 530000,
             category: 'Monitor',
-            image: '/images/products/monitor-27-hd.jpg',
+            image: '/products/27" HD Monitor.webp',
             features: ['27" Full HD', 'IPS Display', 'Eye Care Technology', 'Slim Bezel'],
             inStock: true,
         },
@@ -93,7 +93,7 @@ async function main() {
             description: 'Ultra-wide monitor perfect for multitasking and productivity.',
             price: 690000,
             category: 'Monitor',
-            image: '/images/products/monitor-29-ultrawide.jpg',
+            image: '/products/29" UltraWide Monitor.webp',
             features: ['29" UltraWide', '2560x1080 Resolution', '21:9 Aspect Ratio', 'Split Screen'],
             inStock: true,
         },
@@ -103,7 +103,7 @@ async function main() {
             description: 'Large ultra-wide monitor for immersive work experience.',
             price: 850000,
             category: 'Monitor',
-            image: '/images/products/monitor-34-ultrawide.jpg',
+            image: '/products/34" UltraWide Monitor.webp',
             features: ['34" UltraWide', 'Curved Display', 'USB-C Connectivity', 'HDR Support'],
             inStock: true,
         },
@@ -113,7 +113,7 @@ async function main() {
             description: 'Stunning 4K resolution monitor for professionals who demand clarity.',
             price: 850000,
             category: 'Monitor',
-            image: '/images/products/monitor-27-4k.jpg',
+            image: '/products/27" 4K Monitor.webp',
             features: ['27" 4K UHD', '99% sRGB Color', 'USB-C with Power Delivery', 'Height Adjustable'],
             inStock: true,
             recommended: true,
@@ -124,7 +124,7 @@ async function main() {
             description: 'Premium curved 4K monitor for the ultimate viewing experience.',
             price: 1200000,
             category: 'Monitor',
-            image: '/images/products/monitor-34-4k-curved.jpg',
+            image: '/products/34" 4K Curved Monitor.webp',
             features: ['34" 4K Curved', '144Hz Refresh Rate', '1ms Response', 'HDR400'],
             inStock: true,
             recommended: true,
@@ -137,7 +137,7 @@ async function main() {
             description: 'Affordable ergonomic chair with essential comfort features.',
             price: 260000,
             category: 'Chair',
-            image: '/images/products/chair-ergonomic-basic.jpg',
+            image: '/products/Ergonomic Chair Basic.webp',
             features: ['Mesh Back', 'Lumbar Support', 'Adjustable Height', 'Swivel Base'],
             inStock: true,
             specs: {
@@ -150,7 +150,7 @@ async function main() {
             description: 'Lightweight ergonomic chair with improved comfort.',
             price: 480000,
             category: 'Chair',
-            image: '/images/products/chair-ergonomic-lite.jpg',
+            image: '/products/Ergonomic Chair Lite.webp',
             features: ['Breathable Mesh', 'Armrests', 'Tilt Function', 'Durable Build'],
             inStock: true,
             specs: {
@@ -163,7 +163,7 @@ async function main() {
             description: 'Enhanced ergonomic chair with premium features.',
             price: 530000,
             category: 'Chair',
-            image: '/images/products/chair-ergonomic-plus.jpg',
+            image: '/products/Ergonomic Chair Plus.webp',
             features: ['3D Armrests', 'Adjustable Lumbar', 'Headrest', 'Premium Materials'],
             inStock: true,
             specs: {
@@ -176,7 +176,7 @@ async function main() {
             description: 'Professional-grade ergonomic chair for all-day comfort.',
             price: 830000,
             category: 'Chair',
-            image: '/images/products/chair-ergonomic-pro.jpg',
+            image: '/products/Ergonomic Chair Pro.webp',
             features: ['4D Armrests', 'Dynamic Lumbar', 'Memory Foam', 'Aluminum Base'],
             inStock: true,
             specs: {
@@ -191,7 +191,7 @@ async function main() {
             description: 'Reliable wireless keyboard and mouse combo for daily use.',
             price: 260000,
             category: 'Mouse and Keyboard',
-            image: '/images/products/keyboard-logitech-combo.jpg',
+            image: '/products/Logitech Combo.webp',
             features: ['Wireless 2.4GHz', 'Long Battery Life', 'Quiet Keys', 'Ergonomic Mouse'],
             inStock: true,
             specs: {
@@ -204,7 +204,7 @@ async function main() {
             description: 'Apple-style wireless keyboard and mouse combo.',
             price: 260000,
             category: 'Mouse and Keyboard',
-            image: '/images/products/keyboard-magic-combo.jpg',
+            image: '/products/Magic Combo.webp',
             features: ['Bluetooth Connectivity', 'Rechargeable', 'Slim Design', 'Multi-Touch'],
             inStock: true,
             specs: {
@@ -217,7 +217,7 @@ async function main() {
             description: 'Professional-grade keyboard and mouse for power users.',
             price: 500000,
             category: 'Mouse and Keyboard',
-            image: '/images/products/keyboard-mx-master-combo.jpg',
+            image: '/products/MX Master Combo.webp',
             features: ['MX Keys', 'MX Master 3S', 'Flow Technology', 'USB-C Charging'],
             inStock: true,
             specs: {
@@ -232,7 +232,7 @@ async function main() {
             description: 'Smart power strip with worldwide plug support and USB ports.',
             price: 160000,
             category: 'Others',
-            image: '/images/products/accessory-power-board.jpg',
+            image: '/products/Smart Power Board (Worldwide Support).webp',
             features: ['6 AC Outlets', '4 USB Ports', 'Surge Protection', 'Worldwide Plugs'],
             inStock: true,
         },
@@ -242,7 +242,7 @@ async function main() {
             description: 'High-speed USB hub with 8K display support.',
             price: 260000,
             category: 'Others',
-            image: '/images/products/accessory-usb-hub.jpg',
+            image: '/products/8K USB HUB.webp',
             features: ['8K Display Output', 'Multiple USB Ports', 'Ethernet Port', 'Power Delivery'],
             inStock: true,
         },
@@ -252,7 +252,7 @@ async function main() {
             description: 'Adjustable laptop stand for improved ergonomics.',
             price: 260000,
             category: 'Others',
-            image: '/images/products/accessory-laptop-stand.jpg',
+            image: '/products/360 Laptop Stand.webp',
             features: ['360° Rotation', 'Height Adjustable', 'Aluminum Build', 'Heat Dissipation'],
             inStock: true,
             specs: {
@@ -266,7 +266,7 @@ async function main() {
             description: 'Sturdy monitor arm for flexible positioning.',
             price: 100000,
             category: 'Others',
-            image: '/images/products/accessory-monitor-bracket.jpg',
+            image: '/products/Monitor Bracket.webp',
             features: ['Full Motion', 'VESA Compatible', 'Cable Management', 'Easy Install'],
             inStock: true,
         },
@@ -276,7 +276,7 @@ async function main() {
             description: 'LED desk lamp with adjustable brightness and color temperature.',
             price: 150000,
             category: 'Others',
-            image: '/images/products/accessory-desk-lamp.jpg',
+            image: '/products/Attachable Desk Lamp.webp',
             features: ['LED Light', 'Dimmable', 'USB Powered', 'Flexible Neck'],
             inStock: true,
         },
@@ -286,8 +286,18 @@ async function main() {
             description: 'Premium mouse pad for smooth tracking.',
             price: 30000,
             category: 'Others',
-            image: '/images/products/accessory-mouse-pad.jpg',
+            image: '/products/Mouse Pad.webp',
             features: ['Large Surface', 'Non-Slip Base', 'Smooth Fabric', 'Durable'],
+            inStock: true,
+        },
+        {
+            id: 'accessory-test-desk',
+            name: 'Test Products',
+            description: 'A product for testing purposes.',
+            price: 1000,
+            category: 'Others',
+            image: '/products/java.webp',
+            features: ['Testing'],
             inStock: true,
         },
     ];
@@ -295,8 +305,8 @@ async function main() {
     const createdProducts: any = {};
 
     for (const p of productsData) {
-        // Use provided image path, or fallback to placeholder
-        const imageUrl = (p as any).image || '/MyAi.webp';
+        // Use provided image path from p.image
+        const imageUrl = p.image || '/MyAi.webp';
 
         const specs = {
             ...(p as any).specs,
@@ -328,7 +338,7 @@ async function main() {
             name: 'The Start-Up',
             description: 'Perfect for freelancers and solo entrepreneurs starting their remote work journey in Bali.',
             price: 2100000,
-            image: '/MyAi.webp',
+            image: '/packages/Rental Bali1.webp',
             items: [
                 '27" HD Monitor',
                 'Workstation Solo',
@@ -341,7 +351,7 @@ async function main() {
             name: 'The Digital Nomad',
             description: 'Ideal for digital nomads who need a productive workspace with flexibility.',
             price: 2520000,
-            image: '/MyAi.webp',
+            image: '/packages/Rental Bali2.webp',
             items: [
                 '29" UltraWide Monitor',
                 'Workstation Core',
@@ -353,7 +363,7 @@ async function main() {
             name: "The Entrepreneur's Setup",
             description: 'Premium setup for serious entrepreneurs who demand the best workspace.',
             price: 3670000,
-            image: '/MyAi.webp',
+            image: '/packages/Rental Bali3.webp.webp',
             items: [
                 '34" UltraWide Monitor',
                 'Workstation Plus',
@@ -366,7 +376,7 @@ async function main() {
             name: 'The Pro Workspace',
             description: 'Ultimate dual-monitor setup for maximum productivity and efficiency.',
             price: 7990000,
-            image: '/MyAi.webp',
+            image: '/packages/Rental Bali4.webp',
             items: [
                 '27" 4K Monitor',
                 '27" 4K Monitor',

@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useCart } from '@/contexts/CartContext'
 import { ShoppingCart, Share2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ProductDetailModal } from './ProductDetailModal'
 
@@ -41,17 +42,32 @@ export default function ProductCard({ product, onOrder }: ProductCardProps) {
   const dailyPrice = (product.monthly_price || 0) / 30
   const totalPrice = dailyPrice * duration
 
-  const handleShare = (e: React.MouseEvent) => {
+  const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    const shareUrl = `${window.location.origin}/product/${product.id}`
+
     if (navigator.share) {
-      navigator.share({
-        title: product.name,
-        text: product.description,
-        url: window.location.href,
-      }).catch(console.error)
+      try {
+        await navigator.share({
+          title: product.name,
+          text: product.description,
+          url: shareUrl,
+        })
+        toast.success("Shared successfully")
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error sharing:', error)
+          toast.error("Failed to share")
+        }
+        // AbortError is just a cancellation, no need to show error
+      }
     } else {
-      navigator.clipboard.writeText(window.location.href)
-      // simplified toast or alert
+      try {
+        await navigator.clipboard.writeText(shareUrl)
+        toast.success("Link copied to clipboard")
+      } catch (err) {
+        toast.error("Failed to copy link")
+      }
     }
   }
 
@@ -141,7 +157,8 @@ export default function ProductCard({ product, onOrder }: ProductCardProps) {
               price: dailyPrice * duration, // Price depends on duration
               duration: duration,
               image: product.image_url,
-              quantity: 1
+              quantity: 1,
+              stock: product.stock
             }}
           />
           <Button variant="outline" size="icon" onClick={handleShare} title="Share">
