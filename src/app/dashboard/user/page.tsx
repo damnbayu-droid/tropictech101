@@ -35,8 +35,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ChatDialog } from '@/components/chat/ChatDialog'
-import { GroupChatDialog } from '@/components/chat/GroupChatDialog'
+import { SupportChatHub } from '@/components/chat/SupportChatHub'
 import { useNotification } from '@/contexts/NotificationContext'
 
 export default function UserDashboard() {
@@ -48,12 +47,10 @@ export default function UserDashboard() {
   const [isUpdating, setIsUpdating] = useState(false)
 
   // Chat State
-  const [showChatDialog, setShowChatDialog] = useState(false)
-  const [selectedChatUser, setSelectedChatUser] = useState<{ id: string, name: string, image?: string | null } | null>(null)
-  const [supportAdmin, setSupportAdmin] = useState<{ id: string, name: string } | null>(null)
+  const [showSupportHub, setShowSupportHub] = useState(false)
+  const [defaultSupportGroup, setDefaultSupportGroup] = useState<string | undefined>(undefined)
 
-  // Support Group Chat
-  const [showSupportGroup, setShowSupportGroup] = useState(false)
+  // Support Group Chat (for Hub default open)
   const [supportGroup, setSupportGroup] = useState<{ id: string, name: string } | null>(null)
 
   // Profile Edit State
@@ -71,7 +68,6 @@ export default function UserDashboard() {
         whatsapp: user.whatsapp || '',
         baliAddress: user.baliAddress || '',
       })
-      fetchSupportAdmin()
       fetchSupportGroup()
     }
   }, [user])
@@ -93,21 +89,6 @@ export default function UserDashboard() {
       console.error('Failed to initialize support group', e)
     }
     return null
-  }
-
-  const fetchSupportAdmin = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch('/api/users/admins', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      const data = await res.json()
-      if (data.admins && data.admins.length > 0) {
-        setSupportAdmin({ id: data.admins[0].id, name: 'TropicTech Admin' })
-      }
-    } catch (e) {
-      console.error('Failed to fetch support admin')
-    }
   }
 
   const fetchOrders = async () => {
@@ -250,16 +231,17 @@ export default function UserDashboard() {
     <div className="space-y-10">
       {/* CTA Buttons */}
       <div className="flex flex-row gap-2 justify-end mt-8">
-        {supportGroup && (
-          <Button
-            variant="default"
-            className="gap-2"
-            onClick={() => setShowSupportGroup(true)}
-          >
-            <Headset className="w-4 h-4" />
-            Chat with Admin
-          </Button>
-        )}
+        <Button
+          variant="default"
+          className="gap-2"
+          onClick={() => {
+            if (supportGroup) setDefaultSupportGroup(supportGroup.id)
+            setShowSupportHub(true)
+          }}
+        >
+          <Headset className="w-4 h-4" />
+          Chat Hub
+        </Button>
       </div>
 
       {/* Quick Stats Grid */}
@@ -307,15 +289,8 @@ export default function UserDashboard() {
         <Card
           className="hover:shadow-md transition-shadow cursor-pointer border-primary/20 bg-primary/5"
           onClick={() => {
-            console.log('Support Chat Card Clicked', { supportGroup });
-            if (supportGroup) {
-              setShowSupportGroup(true)
-            } else {
-              console.log('Support group missing, attempting fetch...');
-              fetchSupportGroup().then((group) => {
-                if (group) setShowSupportGroup(true);
-              })
-            }
+            if (supportGroup) setDefaultSupportGroup(supportGroup.id)
+            setShowSupportHub(true)
           }}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -438,9 +413,12 @@ export default function UserDashboard() {
                               variant="secondary"
                               className="w-full font-black rounded-lg gap-2 text-[10px]"
                               onClick={() => {
-                                const worker = order.workerSchedules[0].worker
-                                setSelectedChatUser({ id: worker.id, name: worker.fullName, image: worker.profileImage })
-                                setShowChatDialog(true)
+                                // const worker = order.workerSchedules[0].worker
+                                // Open Chat Hub? Or Direct Chat? 
+                                // Ideally we open the hub and pre-select the user.
+                                // For now, just open the hub.
+                                setShowSupportHub(true)
+                                // In a future iteration, we can pass a specific userId to open directly
                               }}
                             >
                               <MessageSquare className="h-3 w-3" />
@@ -706,49 +684,32 @@ export default function UserDashboard() {
           <Button
             className="bg-white text-primary hover:bg-zinc-100 font-black rounded-xl px-10 py-7 shadow-xl"
             onClick={() => {
-              if (supportAdmin) {
-                setSelectedChatUser(supportAdmin)
-                setShowChatDialog(true)
-              } else {
-                toast.error('Support is currently unavailable')
-              }
+              if (supportGroup) setDefaultSupportGroup(supportGroup.id)
+              setShowSupportHub(true)
             }}
           >
-            CHAT WITH ADMIN
+            OPEN CHAT HUB
           </Button>
         </CardContent>
       </Card>
 
-      {/* Chat Dialog */}
-      {selectedChatUser && (
-        <ChatDialog
-          open={showChatDialog}
-          onOpenChange={setShowChatDialog}
-          otherUserId={selectedChatUser.id}
-          otherUserName={selectedChatUser.name}
-          otherUserImage={selectedChatUser.image}
-        />
-      )}
-
-      {/* Support Group Chat Dialog */}
-      {supportGroup && (
-        <GroupChatDialog
-          open={showSupportGroup}
-          onOpenChange={setShowSupportGroup}
-          groupId={supportGroup.id}
-          groupName={supportGroup.name}
-        />
-      )}
+      {/* Support Chat Hub */}
+      <SupportChatHub
+        open={showSupportHub}
+        onOpenChange={setShowSupportHub}
+        defaultSupportGroupId={defaultSupportGroup}
+      />
 
       {/* Floating Chat Button */}
-      {supportGroup && (
-        <Button
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 z-50 flex items-center justify-center animate-in fade-in zoom-in duration-300"
-          onClick={() => setShowSupportGroup(true)}
-        >
-          <Headset className="h-6 w-6 text-primary-foreground" />
-        </Button>
-      )}
+      <Button
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 z-50 flex items-center justify-center animate-in fade-in zoom-in duration-300"
+        onClick={() => {
+          if (supportGroup) setDefaultSupportGroup(supportGroup.id)
+          setShowSupportHub(true)
+        }}
+      >
+        <Headset className="h-6 w-6 text-primary-foreground" />
+      </Button>
     </div>
   )
 }

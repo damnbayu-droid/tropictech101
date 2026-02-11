@@ -29,6 +29,15 @@ export async function GET(request: NextRequest) {
             },
             orderBy: {
                 createdAt: 'asc'
+            },
+            include: {
+                sender: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        profileImage: true
+                    }
+                }
             }
         })
 
