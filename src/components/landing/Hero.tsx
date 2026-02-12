@@ -8,32 +8,45 @@ import { Slider } from '@/components/ui/slider'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
-export default function Hero() {
+
+interface HeroProps {
+  initialSettings?: {
+    hero_title?: string
+    hero_subtitle?: string
+    hero_subtitle2?: string
+    hero_image?: string
+    hero_opacity_default?: number
+    hero_show_slider?: boolean
+  }
+}
+
+export default function Hero({ initialSettings }: HeroProps) {
   const { t } = useLanguage()
   const { getSetting, loading } = useSiteSettings()
 
-  // Default to 70 if not loaded yet
-  const defaultOpacity = getSetting('hero_opacity_default', 70)
-  const showSlider = getSetting('hero_show_slider', true)
+  // Use server props or fallback to hook/defaults
+  const defaultOpacity = initialSettings?.hero_opacity_default ?? getSetting('hero_opacity_default', 70)
+  const showSlider = initialSettings?.hero_show_slider ?? getSetting('hero_show_slider', true)
 
   const [imageOpacity, setImageOpacity] = useState(defaultOpacity)
 
-  // Update local state when setting loads
+  // Update local state when setting loads (client-side override if needed)
   useEffect(() => {
-    if (!loading) {
-      setImageOpacity(defaultOpacity)
+    if (!loading && !initialSettings) {
+      setImageOpacity(getSetting('hero_opacity_default', 70))
     }
-  }, [loading, defaultOpacity])
+  }, [loading, initialSettings, getSetting])
 
   const scrollToProducts = () => {
     document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Content with fallback to translation
-  const title = getSetting('hero_title', null) || t('title')
-  const subtitle = getSetting('hero_subtitle', null) || t('subtitle')
-  const subtitle2 = getSetting('hero_subtitle2', null) || t('subtitle2')
-  const heroImage = getSetting('hero_image', null) || '/images/hero.webp'
+  // Content with fallback to props -> hook -> translation -> default
+  const title = initialSettings?.hero_title ?? getSetting('hero_title', null) ?? t('title')
+  const subtitle = initialSettings?.hero_subtitle ?? getSetting('hero_subtitle', null) ?? t('subtitle')
+  const subtitle2 = initialSettings?.hero_subtitle2 ?? getSetting('hero_subtitle2', null) ?? t('subtitle2')
+  const heroImage = initialSettings?.hero_image ?? getSetting('hero_image', null) ?? '/images/hero.webp'
+
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 via-background to-primary/5">
@@ -90,7 +103,7 @@ export default function Hero() {
         <>
           {/* Desktop Version (Vertical) */}
           <div className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 flex-col items-center gap-2 bg-background/20 backdrop-blur-md p-3 rounded-full shadow-lg border border-white/10 z-20 animate-in fade-in slide-in-from-right-10 duration-1000">
-            <div className="h-48 flex items-center justify-center w-6">
+            <div className="h-32 flex items-center justify-center w-6">
               <Slider
                 value={[imageOpacity]}
                 onValueChange={(value) => setImageOpacity(value[0])}
@@ -107,7 +120,7 @@ export default function Hero() {
           </div>
 
           {/* Mobile Version (Horizontal) */}
-          <div className="flex md:hidden absolute bottom-24 left-1/2 -translate-x-1/2 flex-row items-center gap-3 bg-background/20 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/10 z-20 w-[200px] animate-in fade-in slide-in-from-bottom-10 duration-1000">
+          <div className="flex md:hidden absolute bottom-36 left-1/2 -translate-x-1/2 flex-row items-center gap-3 bg-background/20 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/10 z-20 w-[200px] animate-in fade-in slide-in-from-bottom-10 duration-3000 delay-1000 ease-in-out">
             <Slider
               value={[imageOpacity]}
               onValueChange={(value) => setImageOpacity(value[0])}

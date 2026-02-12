@@ -27,11 +27,22 @@ export function getCountryInfo(number: string): { flag: string, code: string } |
     return null
 }
 
-export function normalizeWhatsApp(input: string): string {
-    // Remove all non-numeric characters except +
-    let cleaned = input.replace(/[^\d+]/g, '')
+export function normalizeWhatsApp(input: string, number?: string): string {
+    let combined = input
+    if (number) {
+        // If two arguments are provided, combine them
+        // Remove leading 0 from number if present when code is provided
+        let cleanNumber = number
+        if (cleanNumber.startsWith('0')) {
+            cleanNumber = cleanNumber.substring(1)
+        }
+        combined = input + cleanNumber
+    }
 
-    // Handle 0 prefix for Indonesia if no country code
+    // Remove all non-numeric characters except +
+    let cleaned = combined.replace(/[^\d+]/g, '')
+
+    // Handle 0 prefix for Indonesia if no country code (single argument case mostly)
     if (cleaned.startsWith('0')) {
         cleaned = '62' + cleaned.substring(1)
     }

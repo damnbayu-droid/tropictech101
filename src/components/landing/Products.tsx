@@ -15,18 +15,31 @@ import {
 import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export default function Products() {
+
+interface ProductsProps {
+  initialProducts?: any[]
+}
+
+export default function Products({ initialProducts = [] }: ProductsProps) {
   const { t } = useLanguage()
   const [selectedCategory, setSelectedCategory] = useState('All')
-  const [products, setProducts] = useState<any[]>([])
+  const [products, setProducts] = useState<any[]>(initialProducts)
   const [categories, setCategories] = useState<string[]>(['All'])
   const [api, setApi] = useState<CarouselApi>()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    if (initialProducts.length > 0) {
+      // Initialize categories from props
+      const uniqueCategories = Array.from(
+        new Set(initialProducts.map((p: any) => p.category))
+      ) as string[]
+      setCategories(['All', ...uniqueCategories.sort()])
+    } else {
+      fetchProducts()
+    }
+  }, [initialProducts])
 
   useEffect(() => {
     if (api) {
@@ -52,6 +65,7 @@ export default function Products() {
       console.error(err)
     }
   }
+
 
   const filteredProducts = products.filter(p => {
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory
@@ -131,7 +145,7 @@ export default function Products() {
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {filteredProducts.map((product) => (
-              <CarouselItem key={product.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/4">
+              <CarouselItem key={product.id} className="pl-4 basis-[80%] md:basis-1/2 lg:basis-1/4">
                 <div className="p-1 h-full">
                   {/* Product Schema Markup */}
                   <script

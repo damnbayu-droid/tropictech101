@@ -8,15 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-interface RealtimeOverviewProps {
-    initialData: {
-        cards: any
-        notifications: any[]
-    }
-    children?: React.ReactNode
-}
-
-export function RealtimeOverview({ initialData, children }: RealtimeOverviewProps) {
+export function RealtimeOverview({ initialData, children, sidePanel }: { initialData: any, children: React.ReactNode, sidePanel?: React.ReactNode }) {
     const [stats, setStats] = useState(initialData.cards)
     const [notifications, setNotifications] = useState(initialData.notifications)
     const [isRefreshing, setIsRefreshing] = useState(false)
@@ -35,6 +27,42 @@ export function RealtimeOverview({ initialData, children }: RealtimeOverviewProp
         const token = localStorage.getItem('token')
         if (token) {
             poller.pollAdminData(token)
+
+            // Automation Triggers (Lazy Schedule)
+            // Check if we need to run 7AM or 7PM jobs
+            // In a real app, this should be done by Vercel Cron or a dedicated worker.
+            // Here we use the admin dashboard as a trigger.
+            const now = new Date()
+            const baliHour = (now.getUTCHours() + 8) % 24 // Bali is UTC+8
+
+            // Run Currency Update if it's after 7 AM Bali Time
+            if (baliHour >= 7 && baliHour < 19) { // Window: 7 AM - 7 PM
+                // We should check if it ran today, but for now we'll just hit the endpoint 
+                // and let the endpoint logic handles idempotency or we accept redundant updates (it's cheap)
+                // Ideally we should check a local storage flag to avoid spamming on every refresh
+                const lastCurrencyRun = localStorage.getItem('last_currency_run')
+                const today = new Date().toDateString()
+
+                if (lastCurrencyRun !== today) {
+                    fetch('/api/cron/currency').then(() => {
+                        localStorage.setItem('last_currency_run', today)
+                        console.log('Triggered 7AM Currency Update')
+                    })
+                }
+            }
+
+            // Run Smart Check if it's after 7 PM Bali Time
+            if (baliHour >= 19 || baliHour < 7) { // Window: 7 PM - 7 AM
+                const lastSmartCheck = localStorage.getItem('last_smart_check')
+                const today = new Date().toDateString()
+
+                if (lastSmartCheck !== today) {
+                    fetch('/api/cron/smart-check').then(() => {
+                        localStorage.setItem('last_smart_check', today)
+                        console.log('Triggered 7PM Smart Check')
+                    })
+                }
+            }
         }
 
         return () => poller.stop()
@@ -59,6 +87,24 @@ export function RealtimeOverview({ initialData, children }: RealtimeOverviewProp
 
     return (
         <div className="space-y-8">
+            {/* Header Area with Live Sync Button */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-4xl font-black tracking-tight uppercase">Dashboard Overview</h1>
+                    <p className="text-muted-foreground font-medium italic">Command Center</p>
+                </div>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-[10px] font-black uppercase tracking-widest gap-2 opacity-50 hover:opacity-100 self-start md:self-end"
+                    onClick={manualRefresh}
+                    disabled={isRefreshing}
+                >
+                    <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    {isRefreshing ? 'Refreshing...' : 'Live Sync Active'}
+                </Button>
+            </div>
+
             {stats.unresolvedConflicts > 0 && (
                 <Alert variant="destructive" className="bg-red-500/10 border-red-500/20 animate-pulse">
                     <AlertTriangle className="h-4 w-4" />
@@ -77,27 +123,19 @@ export function RealtimeOverview({ initialData, children }: RealtimeOverviewProp
                 </Alert>
             )}
 
-            <div className="flex justify-end -mb-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-[10px] font-black uppercase tracking-widest gap-2 opacity-50 hover:opacity-100"
-                    onClick={manualRefresh}
-                    disabled={isRefreshing}
-                >
-                    <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    {isRefreshing ? 'Refreshing...' : 'Live Sync Active'}
-                </Button>
-            </div>
-
             <StatCards stats={stats} />
 
             <div className="grid gap-8 lg:grid-cols-12">
                 <div className="lg:col-span-8 space-y-8">
                     {children}
+
+                    {/* InfoCenter moved here, below charts, taking full width of this column */}
+                    <div className="pt-4">
+                        <InfoCenter notifications={notifications} onRefresh={manualRefresh} />
+                    </div>
                 </div>
                 <div className="lg:col-span-4 space-y-8">
-                    <InfoCenter notifications={notifications} />
+                    {sidePanel}
                 </div>
             </div>
         </div>

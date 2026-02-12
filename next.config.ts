@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   experimental: {
-    optimizePackageImports: ["lucide-react", "@radix-ui/react-icons", "date-fns"],
+    optimizePackageImports: ["lucide-react", "@radix-ui/react-icons", "date-fns", "recharts", "react-day-picker", "@dnd-kit/core", "@dnd-kit/sortable", "@dnd-kit/utilities"],
   },
 
   images: {

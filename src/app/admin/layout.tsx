@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <AdminSidebar />
             <SidebarInset className="relative">
                 <Header />
-                <div className="flex flex-1 flex-col gap-8 p-4 md:p-8 pt-24 bg-background">
+                <div className="flex flex-1 flex-col gap-8 p-4 md:p-8 pt-24 bg-background min-h-[calc(100vh-4rem)]">
                     <div className="flex items-center justify-between border-b pb-4 border-border/50">
                         <div className="flex items-center gap-4">
                             <SidebarTrigger className="-ml-1" />
@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <Badge variant="outline" className="rounded-full px-4 border-primary/20 bg-primary/5 text-primary text-[10px] font-black">ROOT ACCESS</Badge>
                         </div>
                     </div>
-                    <div className="animate-in fade-in duration-500">
+                    <div className="animate-in fade-in duration-500 flex-1">
                         {children}
                     </div>
                 </div>

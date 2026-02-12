@@ -196,6 +196,7 @@ model User {
   chatGroupMemberships                     ChatGroupMember[]
   sentGroupMessages                        GroupMessage[]
   dailyReports                             DailyReport[]
+  notificationDismissals                   NotificationDismissal[]
 
   @@map("users")
 }
@@ -424,4 +425,28 @@ enum schedule_status {
   FINISHED
   DELAYED
   CANCELLED
+}
+
+model NotificationDismissal {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  entityId   String   @map("entity_id") @db.Uuid
+  entityType String   @map("entity_type") // ORDER, MESSAGE, REPORT, SYSTEM
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityId, entityType])
+  @@map("notification_dismissals")
+}
+
+model SystemJobLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobName   String   @map("job_name") // CURRENCY_UPDATE, SMART_CHECK
+  status    String   // SUCCESS, FAILED
+  message   String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([jobName, createdAt(sort: Desc)], map: "idx_system_jobs_latest")
+  @@map("system_job_logs")
 }

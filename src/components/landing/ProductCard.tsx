@@ -45,7 +45,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const price = product.monthlyPrice || product.monthly_price || 0
-  const dailyPrice = price / 30
+  const dailyPrice = Math.ceil(price / 30)
   const totalPrice = dailyPrice * duration
   const displayImage = product.imageUrl || product.image_url || (product.images && product.images[0]) || '/MyAi.webp'
 

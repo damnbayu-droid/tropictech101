@@ -4,13 +4,20 @@ import { useState, useEffect } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import PackageCard from './PackageCard'
 
-export default function Packages() {
+
+interface PackagesProps {
+  initialPackages?: any[]
+}
+
+export default function Packages({ initialPackages = [] }: PackagesProps) {
   const { t } = useLanguage()
-  const [packages, setPackages] = useState<any[]>([])
+  const [packages, setPackages] = useState<any[]>(initialPackages)
 
   useEffect(() => {
-    fetchPackages()
-  }, [])
+    if (initialPackages.length === 0) {
+      fetchPackages()
+    }
+  }, [initialPackages])
 
   const fetchPackages = async () => {
     try {
@@ -23,6 +30,7 @@ export default function Packages() {
       console.error('Failed to fetch packages:', error)
     }
   }
+
 
   return (
     <section id="packages" className="py-16">

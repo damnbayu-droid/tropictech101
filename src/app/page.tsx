@@ -3,6 +3,8 @@ import Header from '@/components/header/Header'
 import Hero from '@/components/landing/Hero'
 import LandingClient from '@/components/landing/LandingClient'
 
+import { db } from '@/lib/db'
+
 // Dynamically import below-the-fold components
 const Products = dynamic(() => import('@/components/landing/Products'))
 const Packages = dynamic(() => import('@/components/landing/Packages'))
@@ -12,17 +14,148 @@ const AboutUs = dynamic(() => import('@/components/landing/AboutUs'))
 const Reviews = dynamic(() => import('@/components/landing/Reviews'))
 const Footer = dynamic(() => import('@/components/landing/Footer'))
 
-export default function Home() {
+export const revalidate = 60 // Revalidate every minute
+
+
+async function getHeroSettings() {
+  try {
+    const settings = await db.siteSetting.findMany({
+      where: {
+        key: {
+          in: ['hero_title', 'hero_subtitle', 'hero_subtitle2', 'hero_image', 'hero_opacity_default', 'hero_show_slider']
+        }
+      }
+    })
+
+    const settingMap = settings.reduce((acc, curr) => {
+      acc[curr.key] = curr.value
+      return acc
+    }, {} as any)
+
+    return {
+      hero_title: settingMap.hero_title,
+      hero_subtitle: settingMap.hero_subtitle,
+      hero_subtitle2: settingMap.hero_subtitle2,
+      hero_image: settingMap.hero_image,
+      hero_opacity_default: settingMap.hero_opacity_default,
+      hero_show_slider: settingMap.hero_show_slider,
+    }
+  } catch (error) {
+    console.warn('Failed to fetch hero settings:', error)
+    return {}
+  }
+}
+
+async function getProducts() {
+  try {
+    const products = await db.product.findMany({
+      orderBy: {
+        monthlyPrice: 'asc', // Sort by price first
+      },
+    })
+
+    // Custom sort order: Desk -> Monitor -> Chair -> Others
+    const categoryOrder = { 'Desk': 1, 'Monitor': 2, 'Chair': 3 }
+
+    const sortedProducts = products.sort((a, b) => {
+      const orderA = categoryOrder[a.category as keyof typeof categoryOrder] || 4
+      const orderB = categoryOrder[b.category as keyof typeof categoryOrder] || 4
+
+      if (orderA !== orderB) return orderA - orderB
+      return Number(a.monthlyPrice) - Number(b.monthlyPrice)
+    })
+
+    return sortedProducts.map(p => ({
+      ...p,
+      stock: p.stock || 0,
+      monthlyPrice: Number(p.monthlyPrice), // Ensure decimal is number for JSON serialization
+    }))
+  } catch (error) {
+    console.warn('Failed to fetch products:', error)
+    return []
+  }
+}
+
+async function getPackages() {
+  try {
+    const packages = await db.rentalPackage.findMany({
+      orderBy: { price: 'desc' }, // Sort by price descending (expensive first)
+      take: 3, // Only showing 3 packages (excluding cheapest if sorted desc)
+      include: {
+        rentalPackageItems: {
+          include: {
+            product: true
+          }
+        }
+      }
+    })
+    return packages.map(pkg => ({
+      id: pkg.id,
+      name: pkg.name,
+      description: pkg.description,
+      price: Number(pkg.price),
+      duration: pkg.duration,
+      imageUrl: pkg.imageUrl,
+      createdAt: pkg.createdAt,
+      items: pkg.rentalPackageItems.map(item => ({
+        id: item.id,
+        productId: item.productId,
+        name: item.product.name,
+        quantity: item.quantity || 0,
+        product: {
+          name: item.product.name
+        }
+      }))
+    }))
+  } catch (error) {
+    console.warn('Failed to fetch packages:', error)
+    return []
+  }
+}
+
+async function getServiceSettings() {
+  try {
+    const settings = await db.siteSetting.findMany({
+      where: {
+        key: {
+          in: ['services_title', 'services_text', 'services_data']
+        }
+      }
+    })
+    const settingMap = settings.reduce((acc, curr) => {
+      acc[curr.key] = curr.value
+      return acc
+    }, {} as any)
+    return settingMap
+  } catch (error) {
+    console.warn('Failed to fetch service settings:', error)
+    return {}
+  }
+}
+
+export default async function Home() {
+  const [heroSettings, products, packages, serviceSettings] = await Promise.all([
+    getHeroSettings(),
+    getProducts(),
+    getPackages(),
+    getServiceSettings()
+  ])
+
+  // Serialize to ensure no Decimal/Date objects are passed
+  const serializedProducts = JSON.parse(JSON.stringify(products))
+  const serializedPackages = JSON.parse(JSON.stringify(packages))
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <Hero />
+        <Hero initialSettings={heroSettings} />
         <LandingClient>
-          <Products />
-          <Packages />
+          <Products initialProducts={serializedProducts} />
+          <Packages initialPackages={serializedPackages} />
         </LandingClient>
-        <Services />
+        <Services initialSettings={serviceSettings} />
+
         <FAQ />
         <AboutUs />
         <Reviews />

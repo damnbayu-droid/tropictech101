@@ -395,7 +395,7 @@ export default function Header() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden py-6 px-4 space-y-3 border-t bg-background/98 backdrop-blur-xl animate-in slide-in-from-top-5 duration-300">
+            <div className="md:hidden py-6 px-4 space-y-3 border-t border-white/10 bg-background/60 backdrop-blur-md animate-in slide-in-from-top-5 duration-300 shadow-lg">
               <div className="grid grid-cols-1 gap-2">
                 <div className="grid grid-cols-2 gap-2">
                   <Button variant="ghost" className="w-full justify-start h-12 text-base px-3" onClick={() => {

@@ -78,28 +78,34 @@ export default async function AdminOverviewPage() {
     ]
 
     return (
-        <div className="space-y-8 pb-10">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-4xl font-black tracking-tight uppercase">Dashboard Overview</h1>
-                <p className="text-muted-foreground font-medium italic">Command Center</p>
-            </div>
-
-            <RealtimeOverview initialData={data}>
-                {/* RealtimeOverview only wraps part of the UI now, we'll keep charts outside for better control */}
+        <div className="pb-10">
+            <RealtimeOverview
+                initialData={data}
+                sidePanel={
+                    <div className="space-y-8">
+                        <ApiStatusPanel />
+                        <SystemControl />
+                        <ActivityLogPanel />
+                        <MessagesCTA />
+                    </div>
+                }
+            >
+                <div className="grid gap-8 grid-cols-1">
+                    <div className="space-y-8">
+                        <OverviewCharts userData={mockUserData} revenueData={mockRevenueData} />
+                    </div>
+                    {/* InfoCenter moved below charts, full width */}
+                    <div className="space-y-8">
+                        {/* We need to pass notifications here, but RealtimeOverview manages state. 
+                        We should expose InfoCenter via RealtimeOverview's children or a new prop.
+                        Better yet, let RealtimeOverview handle the layout of InfoCenter if it owns the data.
+                        
+                        Wait, RealtimeOverview currently renders InfoCenter in its own grid. 
+                        I should update RealtimeOverview to change where InfoCenter is rendered.
+                     */}
+                    </div>
+                </div>
             </RealtimeOverview>
-
-            <div className="grid gap-8 lg:grid-cols-12">
-                <div className="lg:col-span-8 space-y-8">
-                    <OverviewCharts userData={mockUserData} revenueData={mockRevenueData} />
-                </div>
-                <div className="lg:col-span-4 space-y-8">
-                    <ApiStatusPanel />
-                    <SystemControl />
-                    <ActivityLogPanel />
-                    {/* The InfoCenter is now managed by RealtimeOverview for updates, but we can also put it here if we pass setNotifications */}
-                    <MessagesCTA />
-                </div>
-            </div>
         </div>
     )
 }

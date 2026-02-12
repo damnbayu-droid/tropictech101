@@ -17,14 +17,24 @@ import { useSiteSettings } from '@/hooks/useSiteSettings'
 
 
 
-export default function Services() {
+
+interface ServicesProps {
+  initialSettings?: {
+    services_title?: string
+    services_text?: string
+    services_data?: any
+  }
+}
+
+export default function Services({ initialSettings }: ServicesProps) {
   const { t } = useLanguage()
   const { getSetting } = useSiteSettings()
   const [mounted, setMounted] = React.useState(false)
 
-  const title = getSetting('services_title', null) || t('services')
-  const text = getSetting('services_text', null)
-  const servicesData = getSetting('services_data', null)
+  const title = initialSettings?.services_title ?? getSetting('services_title', null) ?? t('services')
+  const text = initialSettings?.services_text ?? getSetting('services_text', null)
+  const servicesData = initialSettings?.services_data ?? getSetting('services_data', null)
+
 
   React.useEffect(() => {
     setMounted(true)
