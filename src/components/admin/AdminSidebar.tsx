@@ -14,7 +14,8 @@ import {
     Home,
     Sun,
     Moon,
-    MessageSquare
+    MessageSquare,
+    Globe
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
@@ -91,6 +92,11 @@ const items = [
         icon: BarChart3,
     },
     {
+        title: "Website",
+        url: "/admin/website",
+        icon: Globe,
+    },
+    {
         title: "System Control",
         url: "/admin/system",
         icon: Settings,
@@ -101,33 +107,9 @@ export function AdminSidebar() {
     const pathname = usePathname()
     const { unreadMessagesCount } = useNotification()
     const { theme, setTheme } = useTheme()
-    const [unreadCount, setUnreadCount] = useState(0)
     const [mounted, setMounted] = useState(false)
-
     useEffect(() => {
         setMounted(true)
-    }, [])
-
-    useEffect(() => {
-        const fetchUnreadCount = async () => {
-            try {
-                const token = localStorage.getItem('token')
-                if (!token) return
-                const res = await fetch('/api/messages/unread-count', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                const data = await res.json()
-                if (data.success) {
-                    setUnreadCount(data.count)
-                }
-            } catch (error) {
-                console.error('Failed to fetch unread count')
-            }
-        }
-
-        fetchUnreadCount()
-        const interval = setInterval(fetchUnreadCount, 10000)
-        return () => clearInterval(interval)
     }, [])
 
     return (

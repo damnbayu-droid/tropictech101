@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
     Dialog,
@@ -20,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { ShoppingCart, Share2, Ruler, Palette, Star } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { toast } from 'sonner'
+import { SharePopover } from './SharePopover'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 interface ProductDetailModalProps {
@@ -29,27 +31,29 @@ interface ProductDetailModalProps {
         id: string
         name: string
         description: string
+        monthlyPrice?: number
         monthly_price?: number
-        price?: number // Handle both naming conventions
+        price?: number
         images?: string[]
         image_url?: string | null
         imageUrl?: string | null
         specs?: any
+        category?: string
     }
 }
 
 export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailModalProps) {
+    const router = useRouter()
     const { addItem } = useCart()
     const { t } = useLanguage()
     const [isAdded, setIsAdded] = useState(false)
 
-    // Normalize data (handle product vs package differences)
-    const price = product.monthly_price || product.price || 0
+    // Normalize data
+    const price = product.monthlyPrice || product.monthly_price || product.price || 0
     const images = (product.images && product.images.length > 0)
         ? product.images
-        : [product.image_url || product.imageUrl || '/MyAi.webp']
+        : [product.imageUrl || product.image_url || '/MyAi.webp']
 
-    // Ensure we have at least one image to show
     const displayImages = images.length > 0 ? images : ['/MyAi.webp']
 
     const handleAddToCart = () => {
@@ -57,42 +61,29 @@ export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailMo
             id: product.id,
             name: product.name,
             price: price,
-            type: 'PRODUCT', // Simplified for now
+            type: product.category ? 'PRODUCT' : 'PACKAGE',
             image: displayImages[0],
-            duration: 30 // Default
+            duration: 30
         })
         setIsAdded(true)
         setTimeout(() => setIsAdded(false), 2000)
         toast.success(`${product.name} added to cart`)
     }
 
-    const handleShare = async () => {
-        const shareUrl = `${window.location.origin}/product/${product.id}`
-        try {
-            if (navigator.share) {
-                await navigator.share({
-                    title: product.name,
-                    text: product.description,
-                    url: shareUrl,
-                })
-                toast.success("Shared successfully")
-            } else {
-                await navigator.clipboard.writeText(shareUrl)
-                toast.success("Link copied to clipboard")
-            }
-        } catch (error) {
-            if ((error as Error).name !== 'AbortError') {
-                console.error("Error sharing:", error)
-                toast.error("Failed to share")
-            }
-        }
+    const handleRentNow = () => {
+        addItem({
+            id: product.id,
+            name: product.name,
+            price: price,
+            type: product.category ? 'PRODUCT' : 'PACKAGE',
+            image: displayImages[0],
+            duration: 30
+        })
+        router.push('/checkout')
     }
 
-    // Parse specs if they exist. schema says `specs: Json`.
-    // Typescript might see it as any or unknown.
-    const specs = product.specs as any
 
-    // Lightbox state
+    const specs = product.specs as any
     const [lightboxIndex, setLightboxIndex] = useState(0)
     const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 
@@ -113,7 +104,6 @@ export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailMo
                     </DialogHeader>
 
                     <div className="grid md:grid-cols-2 gap-6 mt-4">
-                        {/* Left: Image Carousel */}
                         <div className="relative">
                             <Carousel className="w-full max-w-sm mx-auto">
                                 <CarouselContent>
@@ -145,24 +135,19 @@ export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailMo
                             </p>
                         </div>
 
-                        {/* Right: Details & specs */}
                         <div className="space-y-6">
-
-                            {/* Price */}
                             <div>
                                 <p className="text-lg font-semibold text-primary">
                                     Rp {price.toLocaleString('id-ID')} / month
                                 </p>
                             </div>
 
-                            {/* Specifications */}
                             {specs && (
                                 <div className="space-y-4 border-t pt-4">
                                     <h4 className="font-semibold flex items-center gap-2">
                                         Specifications
                                     </h4>
 
-                                    {/* Features */}
                                     {specs.features && Array.isArray(specs.features) && (
                                         <div className="space-y-1 text-sm">
                                             <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -176,7 +161,6 @@ export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailMo
                                         </div>
                                     )}
 
-                                    {/* Dimensions */}
                                     {(specs.length || specs.width || specs.height || specs.dimensions) && (
                                         <div className="space-y-1 text-sm">
                                             <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -189,7 +173,6 @@ export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailMo
                                         </div>
                                     )}
 
-                                    {/* Standing/Seated Heights (Specific to desks) */}
                                     {(specs.seatedHeight || specs.standingHeight) && (
                                         <div className="text-sm space-y-1">
                                             {specs.seatedHeight && <p>Seated Position: {specs.seatedHeight}</p>}
@@ -198,7 +181,6 @@ export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailMo
                                         </div>
                                     )}
 
-                                    {/* Colours */}
                                     {specs.colours && Array.isArray(specs.colours) && (
                                         <div className="space-y-1 text-sm">
                                             <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -216,33 +198,34 @@ export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailMo
                                 </div>
                             )}
 
-                            {/* Action Buttons */}
                             <div className="flex flex-col gap-3 pt-4">
                                 <div className="grid grid-cols-2 gap-3">
-                                    <Button onClick={handleAddToCart} variant={isAdded ? "default" : "outline"} className={isAdded ? "bg-green-600 hover:bg-green-700" : ""}>
+                                    <Button onClick={handleAddToCart} variant={isAdded ? "default" : "outline"} className={isAdded ? "bg-green-600 hover:bg-green-700 text-white" : ""}>
                                         {isAdded ? "Added" : "Add to Cart"}
                                     </Button>
-                                    <Button onClick={() => window.location.href = '/checkout'}>
+                                    <Button onClick={handleRentNow}>
                                         Rent Now
                                     </Button>
                                 </div>
 
-                                <Button variant="ghost" size="sm" onClick={handleShare} className="w-full">
-                                    <Share2 className="h-4 w-4 mr-2" /> Share this item
-                                </Button>
+                                <div className="w-full">
+                                    <SharePopover
+                                        title={product.name}
+                                        text={product.description}
+                                        url={`${typeof window !== 'undefined' ? window.location.origin : ''}/product/${product.id}`}
+                                    />
+                                    <span className="text-xs text-muted-foreground ml-2">Share this item</span>
+                                </div>
 
-                                {/* Details Button replacing Exit */}
                                 <Button variant="secondary" onClick={() => window.location.href = `/product/${product.id}`} className="w-full">
                                     Details
                                 </Button>
                             </div>
-
                         </div>
                     </div>
                 </DialogContent>
             </Dialog>
 
-            {/* Simple Lightbox Overlay */}
             {isLightboxOpen && (
                 <div
                     className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
@@ -264,7 +247,6 @@ export function ProductDetailModal({ isOpen, onClose, product }: ProductDetailMo
                         </button>
                     </div>
 
-                    {/* Optional: Navigation if multiple images */}
                     {displayImages.length > 1 && (
                         <div className="absolute bottom-10 left-0 right-0 flex justify-center gap-2">
                             {displayImages.map((_, i) => (

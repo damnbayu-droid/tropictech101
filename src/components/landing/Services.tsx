@@ -13,17 +13,30 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
+import { useSiteSettings } from '@/hooks/useSiteSettings'
+
+
+
 export default function Services() {
   const { t } = useLanguage()
+  const { getSetting } = useSiteSettings()
   const [mounted, setMounted] = React.useState(false)
+
+  const title = getSetting('services_title', null) || t('services')
+  const text = getSetting('services_text', null)
+  const servicesData = getSetting('services_data', null)
 
   React.useEffect(() => {
     setMounted(true)
   }, [])
 
-  const services = [
+  const iconMap: Record<string, any> = {
+    Truck, HeadphonesIcon, Shield, Clock, CheckCircle2
+  }
+
+  const defaultServices = [
     {
-      icon: Truck,
+      icon: 'Truck',
       title: 'Fast Delivery',
       description: 'Quick and reliable delivery to your location anywhere in Bali',
       details: {
@@ -37,7 +50,7 @@ export default function Services() {
       }
     },
     {
-      icon: HeadphonesIcon,
+      icon: 'HeadphonesIcon',
       title: '24/7 Support',
       description: 'Round-the-clock customer support for all your needs',
       details: {
@@ -51,7 +64,7 @@ export default function Services() {
       }
     },
     {
-      icon: Shield,
+      icon: 'Shield',
       title: 'Quality Assurance',
       description: 'High-quality equipment regularly maintained and inspected',
       details: {
@@ -65,7 +78,7 @@ export default function Services() {
       }
     },
     {
-      icon: Clock,
+      icon: 'Clock',
       title: 'Flexible Rentals',
       description: 'Rent for any duration - daily, weekly, or monthly plans available',
       details: {
@@ -80,10 +93,20 @@ export default function Services() {
     },
   ]
 
+  const services = (servicesData || defaultServices).map((s: any) => ({
+    ...s,
+    icon: iconMap[s.icon] || Truck // Fallback icon
+  }))
+
   return (
     <section id="services" className="py-16 bg-muted/30">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">{t('services')}</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">{title}</h2>
+        {text && (
+          <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-12 -mt-8 whitespace-pre-wrap">
+            {text}
+          </p>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {services.map((service, index) => {

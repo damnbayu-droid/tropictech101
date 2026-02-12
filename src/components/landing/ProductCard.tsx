@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,7 @@ import { useCart } from '@/contexts/CartContext'
 import { ShoppingCart, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { SharePopover } from './SharePopover'
 import { ProductDetailModal } from './ProductDetailModal'
 
 interface ProductCardProps {
@@ -25,50 +27,43 @@ interface ProductCardProps {
     name: string
     description: string
     category: string
-    monthly_price: number
+    monthlyPrice?: number
+    monthly_price?: number
     stock: number
     image_url?: string | null
+    imageUrl?: string | null
     images?: string[]
     specs?: any
   }
-  onOrder: (productId: string, duration: number) => void
 }
 
-export default function ProductCard({ product, onOrder }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter()
+  const { addItem } = useCart()
   const { t } = useLanguage()
   const [duration, setDuration] = useState(30)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const dailyPrice = (product.monthly_price || 0) / 30
+  const price = product.monthlyPrice || product.monthly_price || 0
+  const dailyPrice = price / 30
   const totalPrice = dailyPrice * duration
+  const displayImage = product.imageUrl || product.image_url || (product.images && product.images[0]) || '/MyAi.webp'
 
-  const handleShare = async (e: React.MouseEvent) => {
+
+  const handleRentNow = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const shareUrl = `${window.location.origin}/product/${product.id}`
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: product.name,
-          text: product.description,
-          url: shareUrl,
-        })
-        toast.success("Shared successfully")
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Error sharing:', error)
-          toast.error("Failed to share")
-        }
-        // AbortError is just a cancellation, no need to show error
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(shareUrl)
-        toast.success("Link copied to clipboard")
-      } catch (err) {
-        toast.error("Failed to copy link")
-      }
+    const item = {
+      id: product.id,
+      type: 'PRODUCT' as const,
+      name: product.name,
+      price: dailyPrice * duration,
+      duration: duration,
+      image: displayImage,
+      quantity: 1,
+      stock: product.stock
     }
+    addItem(item)
+    router.push('/checkout')
   }
 
   return (
@@ -78,21 +73,15 @@ export default function ProductCard({ product, onOrder }: ProductCardProps) {
         onClick={() => setIsModalOpen(true)}
       >
         <CardHeader className="pb-3">
-          {product.image_url ? (
-            <div className="relative aspect-video w-full mb-3 rounded-lg overflow-hidden bg-muted">
-              <Image
-                src={product.image_url}
-                alt={product.name}
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-              />
-            </div>
-          ) : (
-            <div className="aspect-video w-full mb-3 rounded-lg bg-muted flex items-center justify-center">
-              <span className="text-4xl">📦</span>
-            </div>
-          )}
+          <div className="relative aspect-video w-full mb-3 rounded-lg overflow-hidden bg-muted">
+            <Image
+              src={displayImage}
+              alt={product.name}
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            />
+          </div>
 
           <CardTitle className="line-clamp-1">{product.name}</CardTitle>
           <CardDescription className="line-clamp-2">
@@ -112,7 +101,7 @@ export default function ProductCard({ product, onOrder }: ProductCardProps) {
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t('monthly')}:</span>
               <span className="font-semibold">
-                Rp {(product.monthly_price || 0).toLocaleString('id-ID')}
+                Rp {price.toLocaleString('id-ID')}
               </span>
             </div>
 
@@ -144,26 +133,28 @@ export default function ProductCard({ product, onOrder }: ProductCardProps) {
         <CardFooter className="gap-2" onClick={(e) => e.stopPropagation()}>
           <Button
             className="flex-1"
-            onClick={() => onOrder(product.id, duration)}
+            onClick={handleRentNow}
             disabled={product.stock === 0}
           >
-            {product.stock === 0 ? 'Out of Stock' : t('order')}
+            {product.stock === 0 ? 'Out of Stock' : 'Rent Now'}
           </Button>
           <AddToCartButton
             item={{
               id: product.id,
               type: 'PRODUCT',
               name: product.name,
-              price: dailyPrice * duration, // Price depends on duration
+              price: dailyPrice * duration,
               duration: duration,
-              image: product.image_url,
+              image: displayImage,
               quantity: 1,
               stock: product.stock
             }}
           />
-          <Button variant="outline" size="icon" onClick={handleShare} title="Share">
-            <Share2 className="h-4 w-4" />
-          </Button>
+          <SharePopover
+            title={product.name}
+            text={product.description}
+            url={`${typeof window !== 'undefined' ? window.location.origin : ''}/product/${product.id}`}
+          />
         </CardFooter>
       </Card>
 
@@ -184,6 +175,7 @@ function AddToCartButton({ item }: { item: any }) {
     addItem(item)
     setIsAdded(true)
     setTimeout(() => setIsAdded(false), 2000) // Reset after 2s
+    toast.success(`${item.name} added to cart`)
   }
 
   return (

@@ -1,12 +1,40 @@
+'use client'
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AdminSidebar } from "@/components/admin/AdminSidebar"
 import Header from "@/components/header/Header"
 import { Badge } from "@/components/ui/badge"
-
-export const dynamic = 'force-dynamic'
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { Loader2 } from "lucide-react"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const { user, isLoading, isAuthenticated } = useAuth()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (!isLoading) {
+            if (!isAuthenticated) {
+                router.push('/auth/login')
+            } else if (user?.role !== 'ADMIN') {
+                router.push('/')
+            }
+        }
+    }, [isLoading, isAuthenticated, user, router])
+
+    if (isLoading) {
+        return (
+            <div className="flex h-screen items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        )
+    }
+
+    if (!user || user.role !== 'ADMIN') {
+        return null // Return null while redirecting
+    }
+
     return (
         <SidebarProvider>
             <AdminSidebar />

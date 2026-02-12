@@ -397,18 +397,33 @@ export default function Header() {
           {mobileMenuOpen && (
             <div className="md:hidden py-6 px-4 space-y-3 border-t bg-background/98 backdrop-blur-xl animate-in slide-in-from-top-5 duration-300">
               <div className="grid grid-cols-1 gap-2">
-                <Button variant="ghost" className="w-full justify-start h-12 text-base" onClick={() => {
-                  setMobileMenuOpen(false);
-                  router.push('/checkout');
-                }}>
-                  <ShoppingCart className="h-5 w-5 mr-3 text-primary" />
-                  {t('cart')}
-                  {itemCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">
-                      {itemCount}
-                    </span>
-                  )}
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="ghost" className="w-full justify-start h-12 text-base px-3" onClick={() => {
+                    setMobileMenuOpen(false);
+                    router.push('/checkout');
+                  }}>
+                    <ShoppingCart className="h-5 w-5 mr-3 text-primary" />
+                    {t('cart')}
+                    {itemCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">
+                        {itemCount}
+                      </span>
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start h-12 text-base px-3"
+                    onClick={handleGlobeClick}
+                    onMouseDown={handleGlobeMouseDown}
+                    onMouseUp={handleGlobeMouseUp}
+                    onTouchStart={handleGlobeMouseDown}
+                    onTouchEnd={handleGlobeMouseUp}
+                  >
+                    <Globe className="h-5 w-5 mr-3 text-primary" />
+                    Mode / Lang
+                  </Button>
+                </div>
 
                 {isAuthenticated ? (
                   <>

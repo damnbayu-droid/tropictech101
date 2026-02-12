@@ -7,14 +7,14 @@ if (!dbUrl && process.env.NODE_ENV === 'production') {
 }
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+  prisma_v2: PrismaClient | undefined
 }
 
 export const db =
-  globalForPrisma.prisma ??
+  globalForPrisma.prisma_v2 ??
   new PrismaClient({
     log: ['query'],
     ...(dbUrl ? { datasources: { db: { url: dbUrl } } } : {})
   })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma_v2 = db

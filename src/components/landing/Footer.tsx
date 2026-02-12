@@ -20,6 +20,9 @@ export default function Footer() {
             <p className="text-sm text-muted-foreground">
               5+ Years in Bali - Leading the Industry
             </p>
+            <p className="text-sm text-balance">
+              Premium monitors, ergonomic desks, and smart accessories - delivered same day in Bali.
+            </p>
           </div>
 
           {/* Get in Touch */}

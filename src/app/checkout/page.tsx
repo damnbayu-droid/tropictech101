@@ -16,14 +16,7 @@ import Image from 'next/image'
 import Header from '@/components/header/Header'
 import Footer from '@/components/landing/Footer'
 import { toast } from 'sonner'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-import { countries, normalizeWhatsApp } from '@/lib/utils/whatsapp'
+import { countries, normalizeWhatsApp, getCountryInfo } from '@/lib/utils/whatsapp'
 import { AlertCircle } from 'lucide-react'
 
 const paymentMethods = [
@@ -48,8 +41,7 @@ export default function CheckoutPage() {
     const [formData, setFormData] = useState({
         name: user?.fullName || '',
         email: user?.email || '',
-        whatsappCode: '+62',
-        whatsappNumber: '',
+        whatsapp: user?.whatsapp || '',
         address: '',
         linkAddress: '', // Google Maps Link
     })
@@ -71,7 +63,7 @@ export default function CheckoutPage() {
     }
 
     const handleBuy = async () => {
-        if (!formData.name || !formData.email || !formData.whatsappNumber || !formData.address) {
+        if (!formData.name || !formData.email || !formData.whatsapp || !formData.address) {
             toast.error('Please fill in all required fields')
             return
         }
@@ -93,7 +85,10 @@ export default function CheckoutPage() {
         console.log('Order Placed:', {
             items,
             total,
-            customer: formData,
+            customer: {
+                ...formData,
+                whatsappNormalized: normalizeWhatsApp(formData.whatsapp)
+            },
             payment: paymentMethod
         })
 
@@ -147,36 +142,25 @@ export default function CheckoutPage() {
                                         <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="john@example.com" />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="whatsapp">Whatsapp</Label>
-                                        <div className="flex gap-2">
-                                            <Select
-                                                value={formData.whatsappCode}
-                                                onValueChange={(val) => setFormData(prev => ({ ...prev, whatsappCode: val }))}
-                                                disabled={isSubmitting}
-                                            >
-                                                <SelectTrigger className="w-[100px]">
-                                                    <SelectValue placeholder="Code" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {countries.map((c) => (
-                                                        <SelectItem key={c.code + c.name} value={c.code}>
-                                                            <span className="flex items-center gap-2">
-                                                                <span>{c.flag}</span>
-                                                                <span>{c.code}</span>
-                                                            </span>
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                        <Label htmlFor="whatsapp">Whatsapp (Include Country Code)</Label>
+                                        <div className="relative">
+                                            {getCountryInfo(formData.whatsapp) && (
+                                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-lg z-10 pointer-events-none">
+                                                    {getCountryInfo(formData.whatsapp)?.flag}
+                                                </div>
+                                            )}
                                             <Input
                                                 id="whatsapp"
-                                                name="whatsappNumber"
-                                                value={formData.whatsappNumber}
+                                                name="whatsapp"
+                                                value={formData.whatsapp}
                                                 onChange={handleInputChange}
-                                                placeholder="812345678"
-                                                className="flex-1"
+                                                placeholder="+62 812..."
+                                                className={getCountryInfo(formData.whatsapp) ? "pl-10" : ""}
                                             />
                                         </div>
+                                        <p className="text-[10px] text-muted-foreground">
+                                            e.g., +62812345678 (WhatsApp will auto-detect your flag)
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="space-y-2">

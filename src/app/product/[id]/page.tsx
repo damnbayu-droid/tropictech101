@@ -8,14 +8,16 @@ import { Share2, Ruler, Palette, Star, ArrowLeft } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { toast } from 'sonner'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { SharePopover } from '@/components/landing/SharePopover'
 
 // Simple type definition based on what we expect
 type Item = {
     id: string
     name: string
     description: string
-    price?: number
+    monthlyPrice?: number
     monthly_price?: number
+    price?: number
     images?: string[]
     image_url?: string | null
     imageUrl?: string | null
@@ -35,12 +37,16 @@ export default function ProductDetailPage() {
 
     useEffect(() => {
         async function fetchItem() {
+            if (!params?.id) {
+                setLoading(false)
+                return
+            }
+
             try {
                 // 1. Try fetching as Product
                 let res = await fetch(`/api/products/${params.id}`)
 
                 // 2. If not found or error, try fetching as Package
-                // Note: We assume /api/packages/[id] exists or we fallback to logic
                 if (!res.ok) {
                     const resPkg = await fetch(`/api/packages/${params.id}`)
                     if (resPkg.ok) {
@@ -50,14 +56,14 @@ export default function ProductDetailPage() {
 
                 if (res.ok) {
                     const data = await res.json()
-                    setItem(data)
-                    const imgs = (data.images && data.images.length > 0)
-                        ? data.images
-                        : [data.image_url || data.imageUrl || '/MyAi.webp']
-                    setDisplayImages(imgs)
-                } else {
-                    // Fallback for demo if API endpoints are not fully ready for single ID
-                    console.error("Item not found")
+                    const actualItem = data.product || data.package
+                    if (actualItem) {
+                        setItem(actualItem)
+                        const imgs = (actualItem.images && actualItem.images.length > 0)
+                            ? actualItem.images
+                            : [actualItem.imageUrl || actualItem.image_url || '/MyAi.webp']
+                        setDisplayImages(imgs)
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch item", error)
@@ -65,15 +71,28 @@ export default function ProductDetailPage() {
                 setLoading(false)
             }
         }
-        if (params.id) fetchItem()
-    }, [params.id])
+        fetchItem()
+    }, [params?.id])
 
     if (loading) return <div className="min-h-screen flex items-center justify-center bg-background">Loading...</div>
     if (!item) return <div className="min-h-screen flex items-center justify-center bg-background">Item not found</div>
 
     // Specs handling
     const specs = item.specs || {}
-    const price = item.monthly_price || item.price || 0
+    const price = item.monthlyPrice || item.monthly_price || item.price || 0
+
+
+    const handleRentNow = () => {
+        addItem({
+            id: item.id,
+            name: item.name,
+            price: price,
+            type: item.category ? 'PRODUCT' : 'PACKAGE',
+            image: displayImages[0],
+            duration: 30
+        })
+        router.push('/checkout')
+    }
 
     return (
         <div className="min-h-screen bg-background pt-24 pb-10 px-4 md:px-8">
@@ -184,7 +203,7 @@ export default function ProductDetailPage() {
                                         id: item.id,
                                         name: item.name,
                                         price: price,
-                                        type: 'PRODUCT',
+                                        type: item.category ? 'PRODUCT' : 'PACKAGE',
                                         image: displayImages[0],
                                         duration: 30
                                     })
@@ -192,32 +211,18 @@ export default function ProductDetailPage() {
                                 }}>
                                     Add to Cart
                                 </Button>
-                                <Button size="lg" variant="secondary" className="h-12 text-lg" onClick={() => window.location.href = '/checkout'}>
+                                <Button size="lg" variant="secondary" className="h-12 text-lg" onClick={handleRentNow}>
                                     Rent Now
                                 </Button>
                             </div>
-                            <Button variant="outline" className="w-full" onClick={async () => {
-                                try {
-                                    if (navigator.share) {
-                                        await navigator.share({
-                                            title: item.name,
-                                            text: item.description,
-                                            url: window.location.href,
-                                        })
-                                        toast.success("Shared successfully")
-                                    } else {
-                                        await navigator.clipboard.writeText(window.location.href)
-                                        toast.success("Link copied")
-                                    }
-                                } catch (error) {
-                                    if ((error as Error).name !== 'AbortError') {
-                                        console.error("Error sharing:", error)
-                                        toast.error("Failed to share")
-                                    }
-                                }
-                            }}>
-                                <Share2 className="mr-2 h-4 w-4" /> Share this item
-                            </Button>
+                            <div className="w-full flex items-center gap-3">
+                                <SharePopover
+                                    title={item.name}
+                                    text={item.description}
+                                    url={`${typeof window !== 'undefined' ? window.location.href : ''}`}
+                                />
+                                <span className="text-sm text-muted-foreground font-medium">Share this item</span>
+                            </div>
                         </div>
                     </div>
                 </div>

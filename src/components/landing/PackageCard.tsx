@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +10,7 @@ import { ShoppingCart, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { SharePopover } from './SharePopover'
 import { ProductDetailModal } from './ProductDetailModal'
 
 interface PackageCardProps {
@@ -19,6 +21,7 @@ interface PackageCardProps {
     price: number
     duration: number
     imageUrl?: string | null
+    image_url?: string | null
     images?: string[]
     specs?: any
     items: Array<{
@@ -29,39 +32,30 @@ interface PackageCardProps {
       }
     }>
   }
-  onOrder: (packageId: string) => void
 }
 
-export default function PackageCard({ package: pkg, onOrder }: PackageCardProps) {
+export default function PackageCard({ package: pkg }: PackageCardProps) {
+  const router = useRouter()
+  const { addItem } = useCart()
   const { t } = useLanguage()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    const shareUrl = `${window.location.origin}/product/${pkg.id}`
+  const displayImage = pkg.imageUrl || pkg.image_url || (pkg.images && pkg.images[0]) || '/MyAi.webp'
 
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: pkg.name,
-          text: pkg.description,
-          url: shareUrl,
-        })
-        toast.success("Shared successfully")
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Error sharing:', error)
-          toast.error("Failed to share")
-        }
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(shareUrl)
-        toast.success("Link copied to clipboard")
-      } catch (err) {
-        toast.error("Failed to copy link")
-      }
+
+  const handleRentNow = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const item = {
+      id: pkg.id,
+      type: 'PACKAGE' as const,
+      name: pkg.name,
+      price: pkg.price,
+      duration: pkg.duration,
+      image: displayImage,
+      quantity: 1
     }
+    addItem(item)
+    router.push('/checkout')
   }
 
   return (
@@ -71,21 +65,15 @@ export default function PackageCard({ package: pkg, onOrder }: PackageCardProps)
         onClick={() => setIsModalOpen(true)}
       >
         <CardHeader className="pb-3">
-          {pkg.imageUrl ? (
-            <div className="relative aspect-video w-full mb-3 rounded-lg overflow-hidden bg-muted">
-              <Image
-                src={pkg.imageUrl}
-                alt={pkg.name}
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            </div>
-          ) : (
-            <div className="aspect-video w-full mb-3 rounded-lg bg-muted flex items-center justify-center">
-              <span className="text-4xl">📦</span>
-            </div>
-          )}
+          <div className="relative aspect-video w-full mb-3 rounded-lg overflow-hidden bg-muted">
+            <Image
+              src={displayImage}
+              alt={pkg.name}
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
           <CardTitle className="line-clamp-1">{pkg.name}</CardTitle>
           <CardDescription className="line-clamp-2">{pkg.description}</CardDescription>
         </CardHeader>
@@ -120,8 +108,8 @@ export default function PackageCard({ package: pkg, onOrder }: PackageCardProps)
         </CardContent>
 
         <CardFooter className="gap-2" onClick={(e) => e.stopPropagation()}>
-          <Button className="flex-1" onClick={() => onOrder(pkg.id)}>
-            {t('order')}
+          <Button className="flex-1" onClick={handleRentNow}>
+            Rent Now
           </Button>
           <AddToCartButton
             item={{
@@ -130,13 +118,15 @@ export default function PackageCard({ package: pkg, onOrder }: PackageCardProps)
               name: pkg.name,
               price: pkg.price,
               duration: pkg.duration,
-              image: pkg.imageUrl,
+              image: displayImage,
               quantity: 1
             }}
           />
-          <Button variant="outline" size="icon" onClick={handleShare} title="Share">
-            <Share2 className="h-4 w-4" />
-          </Button>
+          <SharePopover
+            title={pkg.name}
+            text={pkg.description}
+            url={`${typeof window !== 'undefined' ? window.location.origin : ''}/product/${pkg.id}`}
+          />
         </CardFooter>
       </Card>
 
@@ -157,6 +147,7 @@ function AddToCartButton({ item }: { item: any }) {
     addItem(item)
     setIsAdded(true)
     setTimeout(() => setIsAdded(false), 2000)
+    toast.success(`${item.name} added to cart`)
   }
 
   return (

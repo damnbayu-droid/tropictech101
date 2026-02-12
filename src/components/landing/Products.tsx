@@ -15,10 +15,7 @@ import {
 import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-import { useOrder } from './LandingClient'
-
 export default function Products() {
-  const { handleProductOrder: onOrder } = useOrder()
   const { t } = useLanguage()
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [products, setProducts] = useState<any[]>([])
@@ -162,7 +159,6 @@ export default function Products() {
                   />
                   <ProductCard
                     product={product}
-                    onOrder={onOrder}
                   />
                 </div>
               </CarouselItem>

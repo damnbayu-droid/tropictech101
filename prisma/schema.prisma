@@ -244,6 +244,16 @@ model GroupMessage {
   @@map("group_messages")
 }
 
+model SiteSetting {
+  key        String   @id
+  value      Json?
+  section    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
 model ActivityLog {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   action    String

@@ -11,14 +11,35 @@ export const countries = [
     { name: 'Russia', code: '+7', flag: '🇷🇺' },
 ]
 
-export function normalizeWhatsApp(code: string, number: string): string {
-    // Remove spaces, dashes, and other non-numeric chars from number
-    let cleanedNumber = number.replace(/\D/g, '')
+export function getCountryInfo(number: string): { flag: string, code: string } | null {
+    if (!number) return null
+    const cleaned = number.replace(/\D/g, '')
 
-    // Strip leading '0'
-    if (cleanedNumber.startsWith('0')) {
-        cleanedNumber = cleanedNumber.substring(1)
+    // Sort by code length descending to match longest codes first (e.g., +62 before +6)
+    const sortedCountries = [...countries].sort((a, b) => b.code.length - a.code.length)
+
+    for (const country of sortedCountries) {
+        const countryCode = country.code.replace('+', '')
+        if (cleaned.startsWith(countryCode)) {
+            return country
+        }
+    }
+    return null
+}
+
+export function normalizeWhatsApp(input: string): string {
+    // Remove all non-numeric characters except +
+    let cleaned = input.replace(/[^\d+]/g, '')
+
+    // Handle 0 prefix for Indonesia if no country code
+    if (cleaned.startsWith('0')) {
+        cleaned = '62' + cleaned.substring(1)
     }
 
-    return code + cleanedNumber
+    // Ensure it has a +
+    if (!cleaned.startsWith('+')) {
+        cleaned = '+' + cleaned
+    }
+
+    return cleaned
 }

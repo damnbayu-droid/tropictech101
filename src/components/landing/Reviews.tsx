@@ -12,11 +12,17 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { useSiteSettings } from '@/hooks/useSiteSettings'
 
 export default function Reviews() {
   const { t } = useLanguage()
+  const { getSetting } = useSiteSettings()
 
-  const reviews = [
+  const title = getSetting('reviews_title', null) || t('reviews')
+  const text = getSetting('reviews_text', null)
+  const reviewsData = getSetting('reviews_data', null)
+
+  const defaultReviews = [
     {
       name: 'Skye Philipoom',
       rating: 5,
@@ -55,11 +61,18 @@ export default function Reviews() {
     },
   ]
 
+  const reviews = reviewsData || defaultReviews
+
   return (
     <section id="reviews" className="py-20 bg-muted/30 overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-4">{t('reviews')}</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-4">{title}</h2>
+          {text && (
+            <p className="text-muted-foreground max-w-2xl mx-auto mb-4 whitespace-pre-wrap">
+              {text}
+            </p>
+          )}
           <div className="flex justify-center items-center gap-2 text-yellow-500">
             <div className="flex">
               {[...Array(5)].map((_, i) => (

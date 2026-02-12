@@ -8,11 +8,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { useSiteSettings } from '@/hooks/useSiteSettings'
 
 export default function FAQ() {
   const { t } = useLanguage()
+  const { getSetting } = useSiteSettings()
 
-  const faqs = [
+  const title = getSetting('faq_title', null) || t('faq')
+  const text = getSetting('faq_text', null)
+  const faqData = getSetting('faq_data', null)
+
+  const defaultFaqs = [
     {
       question: 'How do I rent equipment?',
       answer: 'Simply browse our products, select the duration, and click Order. You\'ll be guided through the checkout process with multiple payment options available.',
@@ -39,6 +45,8 @@ export default function FAQ() {
     },
   ]
 
+  const faqs = faqData || defaultFaqs
+
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -49,7 +57,12 @@ export default function FAQ() {
     return (
       <section id="faq" className="py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">{t('faq')}</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">{title}</h2>
+          {text && (
+            <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-12 -mt-8 whitespace-pre-wrap">
+              {text}
+            </p>
+          )}
           <div className="max-w-3xl mx-auto space-y-4">
             {/* Static placeholder to prevent layout shift */}
             {faqs.map((faq, index) => (
@@ -66,7 +79,12 @@ export default function FAQ() {
   return (
     <section id="faq" className="py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">{t('faq')}</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">{title}</h2>
+        {text && (
+          <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-12 -mt-8 whitespace-pre-wrap">
+            {text}
+          </p>
+        )}
 
         <div className="max-w-3xl mx-auto">
           <Accordion type="single" collapsible className="w-full">
