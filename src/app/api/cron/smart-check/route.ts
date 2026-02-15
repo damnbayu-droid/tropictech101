@@ -40,6 +40,7 @@ export async function GET(req: Request) {
         if (admin) {
             await prisma.systemNotification.create({
                 data: {
+                    // @ts-ignore
                     userId: admin.id,
                     entityId: '00000000-0000-0000-0000-000000000000', // Dummy UUID for mandatory field
                     entityType: 'SYSTEM',
@@ -66,6 +67,7 @@ export async function GET(req: Request) {
         if (admin) {
             await prisma.systemNotification.create({
                 data: {
+                    // @ts-ignore
                     userId: admin.id,
                     type: 'ERROR',
                     title: 'Smart Check Failed',

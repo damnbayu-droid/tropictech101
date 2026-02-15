@@ -132,13 +132,19 @@ model ProductUnit {
 }
 
 model SystemNotification {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type      String
-  title     String
-  message   String
-  isRead    Boolean   @default(false) @map("is_read")
-  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        String
+  title       String
+  message     String
+  isRead      Boolean   @default(false) @map("is_read")
+  userId      String?   @map("user_id") @db.Uuid
+  entityId    String?   @map("entity_id") @db.Uuid
+  entityType  String?   @map("entity_type")
+  relatedType String?   @map("related_type")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "idx_system_notifications_user")
   @@map("system_notifications")
 }
 
@@ -197,6 +203,7 @@ model User {
   sentGroupMessages                        GroupMessage[]
   dailyReports                             DailyReport[]
   notificationDismissals                   NotificationDismissal[]
+  systemNotifications                      SystemNotification[]
 
   @@map("users")
 }

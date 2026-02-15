@@ -120,7 +120,7 @@ export default function Hero({ initialSettings }: HeroProps) {
           </div>
 
           {/* Mobile Version (Horizontal) */}
-          <div className="flex md:hidden absolute bottom-36 left-1/2 -translate-x-1/2 flex-row items-center gap-3 bg-background/20 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/10 z-20 w-[200px] animate-in fade-in slide-in-from-bottom-10 duration-3000 delay-1000 ease-in-out">
+          <div className="flex md:hidden absolute bottom-48 left-1/2 -translate-x-1/2 flex-row items-center gap-3 bg-background/20 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/10 z-20 w-[200px] animate-in fade-in slide-in-from-bottom-10 duration-3000 delay-1000 ease-in-out">
             <Slider
               value={[imageOpacity]}
               onValueChange={(value) => setImageOpacity(value[0])}
