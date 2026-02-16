@@ -8,7 +8,18 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
     try {
         const authHeader = request.headers.get('Authorization')
+        const idempotencyKey = request.headers.get('Idempotency-Key')
         let userId: string | undefined
+
+        // 1. Idempotency Check
+        if (idempotencyKey) {
+            const existing = await db.idempotencyKey.findUnique({
+                where: { key: idempotencyKey }
+            })
+            if (existing && existing.response) {
+                return NextResponse.json(existing.response)
+            }
+        }
 
         if (authHeader) {
             const token = authHeader.split(' ')[1]
@@ -33,70 +44,108 @@ export async function POST(request: Request) {
         const endDate = new Date()
         endDate.setDate(startDate.getDate() + (item.duration || 30))
 
-        const order = await db.order.create({
-            data: {
-                orderNumber,
-                status: 'PENDING',
-                totalAmount: item.price,
-                subtotal: item.price,
-                paymentMethod,
-                startDate,
-                endDate,
-                duration: item.duration || 30,
-                userId: userId as string, // Note: Schema requirement
-                rentalItems: { create: { productId: item.id, quantity: 1 } },
-            },
-        })
+        // 2. Atomic Transaction
+        const result = await db.$transaction(async (tx) => {
+            // A. Stock Validation & Lock
+            const product = await tx.product.findUnique({
+                where: { id: item.id }
+            })
 
-        // 1. Generate Invoice
-        const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`
-        const invoice = await db.invoice.create({
-            data: {
-                invoiceNumber,
-                orderId: order.id,
-                userId: userId,
-                guestName: guestInfo?.fullName,
-                guestEmail: guestInfo?.email,
-                guestWhatsapp: guestInfo?.whatsapp,
-                guestAddress: deliveryAddress,
-                total: item.price,
-                subtotal: item.price,
-                status: 'PENDING',
-                currency: currency || 'IDR'
+            if (!product) throw new Error('Product not found')
+            if ((product.stock || 0) < 1) {
+                throw new Error('Insufficient stock')
             }
+
+            // B. Decrement Stock
+            await tx.product.update({
+                where: { id: item.id },
+                data: { stock: { decrement: 1 } }
+            })
+
+            // C. Create Order
+            const order = await tx.order.create({
+                data: {
+                    orderNumber,
+                    status: 'PENDING',
+                    totalAmount: item.price,
+                    subtotal: item.price,
+                    paymentMethod,
+                    startDate,
+                    endDate,
+                    duration: item.duration || 30,
+                    userId: userId as string,
+                    rentalItems: { create: { productId: item.id, quantity: 1 } },
+                },
+            })
+
+            // D. Create Invoice
+            const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`
+            const invoice = await tx.invoice.create({
+                data: {
+                    invoiceNumber,
+                    orderId: order.id,
+                    userId: userId,
+                    guestName: guestInfo?.fullName,
+                    guestEmail: guestInfo?.email,
+                    guestWhatsapp: guestInfo?.whatsapp,
+                    guestAddress: deliveryAddress,
+                    total: item.price,
+                    subtotal: item.price,
+                    status: 'PENDING',
+                    currency: currency || 'IDR'
+                }
+            })
+
+            // E. Store Idempotency Key
+            if (idempotencyKey) {
+                await tx.idempotencyKey.create({
+                    data: {
+                        key: idempotencyKey,
+                        response: { order, invoice }
+                    }
+                })
+            }
+
+            return { order, invoice }
         })
 
-        // 2. Automate Email
-        try {
-            const recipients: string[] = []
-            const customerEmail = userId ? (await db.user.findUnique({ where: { id: userId } }))?.email : guestInfo?.email
-            if (customerEmail) recipients.push(customerEmail)
+        // 3. Async Background Tasks (Email) - Non-blocking
+        // Ideally pushing to JobQueue, but keeping existing logic for now
+        // wrapped in timeout to not block response
+        setTimeout(async () => {
+            try {
+                const recipients: string[] = []
+                const customerEmail = userId ? (await db.user.findUnique({ where: { id: userId } }))?.email : guestInfo?.email
+                if (customerEmail) recipients.push(customerEmail)
+                recipients.push('tropictechindo@gmail.com')
 
-            // Forward to Company
-            recipients.push('tropictechindo@gmail.com')
+                // Get workers
+                const workers = await db.user.findMany({
+                    where: { role: 'WORKER' },
+                    select: { email: true }
+                })
+                workers.forEach(w => recipients.push(w.email))
 
-            // Forward to Workers
-            const workers = await db.user.findMany({
-                where: { role: 'WORKER' },
-                select: { email: true }
-            })
-            workers.forEach(w => recipients.push(w.email))
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+                await sendInvoiceEmail({
+                    to: recipients,
+                    invoiceNumber: result.invoice.invoiceNumber,
+                    customerName: guestInfo?.fullName || 'Valued Customer',
+                    amount: Number(result.invoice.total),
+                    invoiceLink: `${baseUrl}/invoice/${result.invoice.id}`
+                })
+            } catch (emailError) {
+                console.error('Failed to send automation email:', emailError)
+            }
+        }, 0)
 
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-            await sendInvoiceEmail({
-                to: recipients,
-                invoiceNumber: invoice.invoiceNumber,
-                customerName: guestInfo?.fullName || 'Valued Customer',
-                amount: Number(invoice.total),
-                invoiceLink: `${baseUrl}/invoice/${invoice.id}`
-            })
-        } catch (emailError) {
-            console.error('Failed to send automation email:', emailError)
-        }
+        return NextResponse.json(result)
 
-        return NextResponse.json({ order, invoice })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating order:', error)
+        if (error.message === 'Insufficient stock') {
+            return NextResponse.json({ error: 'Product is out of stock' }, { status: 409 })
+        }
         return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
     }
 }

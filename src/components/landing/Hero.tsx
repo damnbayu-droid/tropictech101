@@ -102,8 +102,8 @@ export default function Hero({ initialSettings }: HeroProps) {
       {showSlider && (
         <>
           {/* Desktop Version (Vertical) */}
-          <div className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 flex-col items-center gap-2 bg-background/20 backdrop-blur-md p-3 rounded-full shadow-lg border border-white/10 z-20 animate-in fade-in slide-in-from-right-10 duration-1000">
-            <div className="h-32 flex items-center justify-center w-6">
+          <div className="hidden md:flex absolute right-8 top-1/2 -translate-y-1/2 flex-col items-center gap-4 bg-background/20 backdrop-blur-md p-4 rounded-full shadow-lg border border-white/10 z-20 animate-in fade-in slide-in-from-right-10 duration-1000">
+            <div className="h-48 flex items-center justify-center w-6">
               <Slider
                 value={[imageOpacity]}
                 onValueChange={(value) => setImageOpacity(value[0])}
@@ -111,16 +111,16 @@ export default function Hero({ initialSettings }: HeroProps) {
                 max={100}
                 step={1}
                 orientation="vertical"
-                className="h-full"
+                className="h-full min-h-0"
               />
             </div>
-            <span className="text-[10px] font-bold text-primary whitespace-nowrap">
+            <span className="text-xs font-bold text-primary whitespace-nowrap">
               {imageOpacity}%
             </span>
           </div>
 
           {/* Mobile Version (Horizontal) */}
-          <div className="flex md:hidden absolute bottom-48 left-1/2 -translate-x-1/2 flex-row items-center gap-3 bg-background/20 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/10 z-20 w-[200px] animate-in fade-in slide-in-from-bottom-10 duration-3000 delay-1000 ease-in-out">
+          <div className="flex md:hidden absolute bottom-32 left-1/2 -translate-x-1/2 flex-row items-center gap-3 bg-background/20 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/10 z-20 w-[220px] animate-in fade-in slide-in-from-bottom-10 duration-3000 delay-1000 ease-in-out">
             <Slider
               value={[imageOpacity]}
               onValueChange={(value) => setImageOpacity(value[0])}

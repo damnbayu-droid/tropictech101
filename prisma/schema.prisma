@@ -457,3 +457,35 @@ model SystemJobLog {
   @@index([jobName, createdAt(sort: Desc)], map: "idx_system_jobs_latest")
   @@map("system_job_logs")
 }
+
+model IdempotencyKey {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key       String   @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  response  Json?    // Store the successful response to return it for duplicate calls
+
+  @@map("idempotency_keys")
+}
+
+model JobQueue {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        String    @db.VarChar(50) // EMAIL, NOTIFICATION, etc.
+  payload     Json
+  status      String    @default("PENDING") // PENDING, PROCESSING, DONE, FAILED
+  retryCount  Int       @default(0) @map("retry_count")
+  runAt       DateTime? @default(now()) @map("run_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(6)
+  error       String?
+
+  @@index([status, runAt], map: "idx_job_queue_status_run")
+  @@map("job_queue")
+}
+
+model CronLock {
+  id        String   @id @default("CRON_LOCK")
+  lockedAt  DateTime @default(now()) @map("locked_at") @db.Timestamptz(6)
+  lockedBy  String?  @map("locked_by")
+
+  @@map("cron_locks")
+}

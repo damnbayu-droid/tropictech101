@@ -120,37 +120,56 @@ export async function POST(
 
         const { orderId, scheduledDate, notes } = await request.json()
         const adminId = 'admin-id' // Replace with actual admin ID from JWT
+        const targetDate = new Date(scheduledDate)
 
-        // Create worker schedule
-        const schedule = await db.workerSchedule.create({
-            data: {
-                workerId: params.id,
-                orderId,
-                assignedBy: adminId,
-                scheduledDate: new Date(scheduledDate),
-                notes,
-                status: 'PENDING'
-            }
-        })
+        // Atomic Transaction for Assignment
+        const result = await db.$transaction(async (tx) => {
+            // 1. Overlap Validation
+            const existingSchedule = await tx.workerSchedule.findFirst({
+                where: {
+                    workerId: params.id,
+                    scheduledDate: targetDate,
+                    status: { notIn: ['CANCELLED', 'FINISHED'] }
+                }
+            })
 
-        // Create notification for worker
-        await db.workerNotification.create({
-            data: {
-                workerId: params.id,
-                fromAdminId: adminId,
-                type: 'JOB_ASSIGNED',
-                title: 'New Job Assigned',
-                message: `You have been assigned a new delivery job scheduled for ${new Date(scheduledDate).toLocaleDateString()}`,
-                isRead: false
+            if (existingSchedule) {
+                throw new Error('Worker already has a job on this date')
             }
-        })
 
-        // Update order delivery status
-        await db.order.update({
-            where: { id: orderId },
-            data: {
-                deliveryStatus: 'SCHEDULED'
-            }
+            // 2. Create Schedule
+            const schedule = await tx.workerSchedule.create({
+                data: {
+                    workerId: params.id,
+                    orderId,
+                    assignedBy: adminId,
+                    scheduledDate: targetDate,
+                    notes,
+                    status: 'PENDING'
+                }
+            })
+
+            // 3. Notifications
+            await tx.workerNotification.create({
+                data: {
+                    workerId: params.id,
+                    fromAdminId: adminId,
+                    type: 'JOB_ASSIGNED',
+                    title: 'New Job Assigned',
+                    message: `You have been assigned a new delivery job scheduled for ${targetDate.toLocaleDateString()}`,
+                    isRead: false
+                }
+            })
+
+            // 4. Update Order Status
+            await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    deliveryStatus: 'SCHEDULED'
+                }
+            })
+
+            return schedule
         })
 
         await logActivity({
@@ -160,9 +179,12 @@ export async function POST(
             details: `Assigned job to worker ${params.id}`
         })
 
-        return NextResponse.json({ success: true, schedule })
-    } catch (error) {
+        return NextResponse.json({ success: true, schedule: result })
+    } catch (error: any) {
         console.error('Assign job error:', error)
+        if (error.message === 'Worker already has a job on this date') {
+            return NextResponse.json({ error: error.message }, { status: 409 })
+        }
         return NextResponse.json(
             { error: 'Failed to assign job' },
             { status: 500 }
